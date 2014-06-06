@@ -13,6 +13,7 @@ mules1962 <- subset(allmules, year>1961)
 
 # Load extra packages:
 library(lattice) # for xyplot
+library(reshape2)
 library(ggplot2)
 theme_set(theme_bw()) # Black-and-white theme for ggplot instead of the default grey background
 
@@ -22,34 +23,64 @@ theme_set(theme_bw()) # Black-and-white theme for ggplot instead of the default 
 
 # Spring population density (sq km) (raw data per study area)
 PopDenSpring <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, MDperKMsqSpring = mules1962$MDperKMsqSpring)
-PopDenSpring_mean <- tapply(X=PopDenSpring$MDperKMsqSpring, INDEX=c(list(PopDenSpring$macrounit), list(PopDenSpring$year)), FUN=mean, na.rm=T)
-PopDenSpring_mean <- as.data.frame(PopDenSpring_mean) #notwendig? -> das resultat ist irgendwie trotzdem eine "list"
-xyplot(PopDenSpring_mean ~ names(PopDenSpring_mean) | row.names(PopDenSpring_mean), data=PopDenSpring_mean, type="l")
-
+PopDenSpring_mean <- t(tapply(X=PopDenSpring$MDperKMsqSpring, INDEX=c(list(PopDenSpring$macrounit), list(PopDenSpring$year)), FUN=mean, na.rm=T))
+PopDenSpring_mean_m <- melt(PopDenSpring_mean)
+names(PopDenSpring_mean_m) <- c("year", "macrounit", "PopDenSpring_mean")
+PopDenSpring_mean_lm <- tapply(X=PopDenSpring_mean_m$PopDenSpring_mean, INDEX=c(list(PopDenSpring_mean_m$macrounit), list(PopDenSpring_mean_m$year)), FUN=lm)
+plot(PopDenSpring_mean_m$PopDenSpring_mean~PopDenSpring_mean_m$year)
+PopDenSpring_mean_lm <- lm(PopDenSpring_mean_m$PopDenSpring_mean~PopDenSpring_mean_m$year)
+abline(PopDenSpring_mean_lm)
 
 # Harvest density antlered+antlerless (sq km) (raw data per macrounit, density per size of badlands in each huntingunit)
 HuntDenAll  <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, HuntDenAll = mules1962$d3) 
-HuntDenAll_mean <- tapply(X=HuntDenAll$HuntDenAll, INDEX=c(list(HuntDenAll$macrounit), list(HuntDenAll$year)), FUN = mean, na.rm=T) #not really necessary as hunting data only available per huntin macrounit (but easiest way to extract data)
+HuntDenAll_mean <- t(tapply(X=HuntDenAll$HuntDenAll, INDEX=c(list(HuntDenAll$macrounit), list(HuntDenAll$year)), FUN = mean, na.rm=T)) #not really necessary as hunting data only available per huntin macrounit (but easiest way to extract data)
+HuntDenAll_mean_m <- melt(HuntDenAll_mean)
+names(HuntDenAll_mean_m) <- c("year", "macrounit", "HuntDen_mean")
 
 
-# Density of active oil wells within study site including 1000m buffer (10sq km) (only group "oil+gas")
-WellDen <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, WellDen = mules1962$OIL_GAS_insideD)
-WellDen_mean <- tapply(X=WellDen$WellDen, INDEX=c(list(WellDen$macrounit), list(WellDen$year)), FUN=mean, na.rm=T)
-WellDen_mean <- WellDen_mean * 100 # in sq km
 
 
+#--------
 # Coyote Density (raw data per study area, regrouped into macrounits)(100 sq km)
-CoyoteDen <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, CoyoteDen = mules1962$fall_density_coyote_by_macrounit_100km2)
-CoyoteDen_mean <- tapply(X=CoyoteDen$CoyoteDen, INDEX=c(list(CoyoteDen$macrounit), list(CoyoteDen$year)), FUN = mean, na.rm=T)
-CoyoteDen_mean <- CoyoteDen_mean * 10000 #per sq km
+CoyoteDen <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, CoyoteDen = mules1962$spring_density_coyote_by_macrounit_100km2)
+CoyoteDen_mean <- t(tapply(X=CoyoteDen$CoyoteDen, INDEX=c(list(CoyoteDen$macrounit), list(CoyoteDen$year)), FUN = mean, na.rm=T))
+CoyoteDen_mean_m <- melt(CoyoteDen_mean)
+names(CoyoteDen_mean_m) <- c("year", "macrounit", "CoyoteDen_mean")
+CoyoteDen_mean_m$CoyoteDen_mean <- CoyoteDen_mean_m$CoyoteDen_mean / 100 #per sq km
 
 
 # White Tail Deer Spring Density (10 sq km) (raw data per study site)
 WTailDen <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, WTailDen = mules1962$WT_DEER_springsurveysD)
-WTailDen_mean <- tapply(X=WTailDen$WTailDen, INDEX=c(list(WTailDen$macrounit), list(WTailDen$year)), FUN = mean, na.rm=T)
-WTailDen_mean <- WTailDen_mean * 100 # in sq km
+WTailDen_mean <- t(tapply(X=WTailDen$WTailDen, INDEX=c(list(WTailDen$macrounit), list(WTailDen$year)), FUN = mean, na.rm=T))
+WTailDen_mean_m <- melt(WTailDen_mean)
+names(WTailDen_mean_m) <- c("year", "macrounit", "WTailDen_mean")
+WTailDen_mean_m$WTailDen_mean <- WTailDen_mean_m$WTailDen_mean / 10 # per sq km
 
+#-----
+
+# Density of active oil wells within study site including 1000m buffer (10sq km) (only group "oil+gas")
+WellDen <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, WellDen = mules1962$OIL_GAS_insideD)
+WellDen_mean <- t(tapply(X=WellDen$WellDen, INDEX=c(list(WellDen$macrounit), list(WellDen$year)), FUN=mean, na.rm=T))
+WellDen_mean_m <- melt(WellDen_mean)
+names(WellDen_mean_m) <- c("year", "macrounit", "WellDen_mean")
+WellDen_mean_m$WellDen_mean <- WellDen_mean_m$WellDen_mean / 10 # in sq km
 
 # Woody Vegetation from model (percentage per study site)
 WoodyVeg <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, WoodyVeg = mules1962$woody_coverage)
-WoodyVeg_mean <- tapply(X=WoodyVeg$WoodyVeg, INDEX=c(list(WoodyVeg$macrounit), list(WoodyVeg$year)), FUN = mean, na.rm=T)
+WoodyVeg_mean <- t(tapply(X=WoodyVeg$WoodyVeg, INDEX=c(list(WoodyVeg$macrounit), list(WoodyVeg$year)), FUN = mean, na.rm=T))
+WoodyVeg_mean_m <- melt(WoodyVeg_mean)
+names(WoodyVeg_mean_m) <- c("year", "macrounit", "WoodyVeg_mean")
+WoodyVeg_mean_m <- (WoodyVeg_mean_m)
+
+MyPanel <- function(x, y, subscripts) {
+  panel.xyplot(x, y, type = "l")
+  panel.abline(lm(y ~ x))}
+
+xyplot(PopDenSpring_mean + HuntDenAll_mean ~ year | macrounit, data=c(PopDenSpring_mean_m, HuntDenAll_mean_m), subscripts=TRUE, panel=function(...) panel.superpose(panel.groups=MyPanel, ...), type="l", auto.key = list(space = "top", text = c("Population Density", "Hunting Density")), xlab = "Year", ylab= "Density per km?", main = "Mean Spring Population Density and Mean Harvesting Density")
+
+# so will ich http://stackoverflow.com/questions/16361766/multiple-ablines-in-xyplot
+
+xyplot(CoyoteDen_mean + WTailDen_mean ~ year | macrounit, data=c(CoyoteDen_mean_m, WTailDen_mean_m), type="l", auto.key = list(space = "top", text = c("Coyote Density", "WT Deer Density"), points = FALSE, lines = TRUE), xlab = "Year", ylab= "Density per km?", main = "Mean Coyote and White-Tail Deer Spring Population Density")
+
+xyplot(WellDen_mean + (WoodyVeg_mean/100) ~ year | macrounit, data=c(WellDen_mean_m, WoodyVeg_mean_m), type="l", auto.key = list(space = "top", text = c("Density Oil+Gas Sites per km? (incl. 1km-buffer)", "Percentage of Woody Vegetation (divided by 100)"), points = FALSE, lines = TRUE), xlab = "Year", ylab= "Density/Percentage", main = "Mean Oil+Gas Extraction Density and Percentage of Woody Vegetation")
+
