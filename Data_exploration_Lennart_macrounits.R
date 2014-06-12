@@ -1,8 +1,3 @@
-#Schritte:
-- alles in xyplot mit xyplot(PopDens + HuntDens ~ year | macrounit)
-
- 
-
 setwd("C:/Users/lschmidt/Desktop/Mule_deer/Data_exploration")
 
 # Load whole data set:
@@ -13,23 +8,27 @@ mules1962 <- subset(allmules, year>1961)
 
 # Load extra packages:
 library(lattice) # for xyplot
-library(reshape2)
 library(ggplot2)
 theme_set(theme_bw()) # Black-and-white theme for ggplot instead of the default grey background
 
-
+# load supplementary functions
+source("Supplementary_Functions.R")
 
 # ALL IN ONE PER MACROUNIT----------------------------------------------------------
 
 # Spring population density (sq km) (raw data per study area)
-PopDenSpring <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, MDperKMsqSpring = mules1962$MDperKMsqSpring)
+
+AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring","d3"), listvar=c("macrounit","year"))
+
+
+
+
+
 PopDenSpring_mean <- t(tapply(X=PopDenSpring$MDperKMsqSpring, INDEX=c(list(PopDenSpring$macrounit), list(PopDenSpring$year)), FUN=mean, na.rm=T))
 PopDenSpring_mean_m <- melt(PopDenSpring_mean)
 names(PopDenSpring_mean_m) <- c("year", "macrounit", "PopDenSpring_mean")
-PopDenSpring_mean_lm <- tapply(X=PopDenSpring_mean_m$PopDenSpring_mean, INDEX=c(list(PopDenSpring_mean_m$macrounit), list(PopDenSpring_mean_m$year)), FUN=lm)
-plot(PopDenSpring_mean_m$PopDenSpring_mean~PopDenSpring_mean_m$year)
-PopDenSpring_mean_lm <- lm(PopDenSpring_mean_m$PopDenSpring_mean~PopDenSpring_mean_m$year)
-abline(PopDenSpring_mean_lm)
+
+
 
 # Harvest density antlered+antlerless (sq km) (raw data per macrounit, density per size of badlands in each huntingunit)
 HuntDenAll  <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, HuntDenAll = mules1962$d3) 
@@ -83,4 +82,30 @@ xyplot(PopDenSpring_mean + HuntDenAll_mean ~ year | macrounit, data=c(PopDenSpri
 xyplot(CoyoteDen_mean + WTailDen_mean ~ year | macrounit, data=c(CoyoteDen_mean_m, WTailDen_mean_m), type="l", auto.key = list(space = "top", text = c("Coyote Density", "WT Deer Density"), points = FALSE, lines = TRUE), xlab = "Year", ylab= "Density per km?", main = "Mean Coyote and White-Tail Deer Spring Population Density")
 
 xyplot(WellDen_mean + (WoodyVeg_mean/100) ~ year | macrounit, data=c(WellDen_mean_m, WoodyVeg_mean_m), type="l", auto.key = list(space = "top", text = c("Density Oil+Gas Sites per km? (incl. 1km-buffer)", "Percentage of Woody Vegetation (divided by 100)"), points = FALSE, lines = TRUE), xlab = "Year", ylab= "Density/Percentage", main = "Mean Oil+Gas Extraction Density and Percentage of Woody Vegetation")
+
+#------------------------------------------
+#lm of popdensity  --> of no use....
+sub_PopDenSpring01 <- subset(PopDenSpring_mean_m, macrounit == "0-1")
+sub_PopDenSpring02 <- subset(PopDenSpring_mean_m, macrounit == "0-2")
+sub_PopDenSpring03<- subset(PopDenSpring_mean_m, macrounit == "0-3")
+sub_PopDenSpring04 <- subset(PopDenSpring_mean_m, macrounit == "0-4")
+
+lm_sub_PopDenSpring01 <- lm(PopDenSpring_mean~year, data=sub_PopDenSpring01)
+lm_sub_PopDenSpring02 <- lm(PopDenSpring_mean~year, data=sub_PopDenSpring02)
+lm_sub_PopDenSpring03 <- lm(PopDenSpring_mean~year, data=sub_PopDenSpring03)
+lm_sub_PopDenSpring04 <- lm(PopDenSpring_mean~year, data=sub_PopDenSpring04)
+
+par(mfrow=c(2,2))
+plot(sub_PopDenSpring01$PopDenSpring_mean~sub_PopDenSpring01$year, main="0 - 1", ylab="per km?", xlab="Year", cex=0.5, col="blue")
+abline(lm_sub_PopDenSpring01, add=TRUE, col=4)
+plot(sub_PopDenSpring02$PopDenSpring_mean~sub_PopDenSpring02$year, main="0 - 2", ylab="per km?", xlab="Year", cex=0.5, col="blue")
+abline(lm_sub_PopDenSpring01, add=TRUE, col=4)
+plot(sub_PopDenSpring03$PopDenSpring_mean~sub_PopDenSpring03$year, main="0 - 3", ylab="per km?", xlab="Year", cex=0.5, col="blue")
+abline(lm_sub_PopDenSpring01, add=TRUE, col=4)
+plot(sub_PopDenSpring04$PopDenSpring_mean~sub_PopDenSpring04$year, main="0 - 4", ylab="per km?", xlab="Year", cex=0.5, col="blue")
+abline(lm_sub_PopDenSpring01, add=TRUE, col=4)
+
+
+##----area sizes
+
 
