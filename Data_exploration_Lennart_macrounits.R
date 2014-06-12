@@ -23,7 +23,7 @@ AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring","d3"), li
 
 
 
-
+  
 PopDenSpring_mean <- t(tapply(X=PopDenSpring$MDperKMsqSpring, INDEX=c(list(PopDenSpring$macrounit), list(PopDenSpring$year)), FUN=mean, na.rm=T))
 PopDenSpring_mean_m <- melt(PopDenSpring_mean)
 names(PopDenSpring_mean_m) <- c("year", "macrounit", "PopDenSpring_mean")

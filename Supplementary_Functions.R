@@ -23,8 +23,6 @@ extract <- function(data, columns=NULL, fun = NULL, xvar, listvar){
         }
       }
     names(b) <- names(data[,c(rev(listvar),xvar)])# for some reason, tapply always reverses the order of listvar    
-    namechange <- which(names(b) == xvar) #change columns names of processed columns
-    names(b)[namechange] <- paste(xvar, "mod", sep="_")
     return(b)}    
 }
 
