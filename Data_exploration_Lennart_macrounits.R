@@ -1,5 +1,3 @@
-setwd("C:/Users/lschmidt/Desktop/Mule_deer/Data_exploration")
-
 # Load whole data set:
 allmules <- read.csv("muledeer_final_dataset.csv")
 
@@ -27,11 +25,12 @@ names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "HuntDen_All_mean", "C
 
 
 
-###---- Spring population density (sq km) (raw data per study area)
-#GAM without Autocorrelation
+
+### GAMs of spring MD Population 
+# GAM without Autocorrelation
 gamlist <- list()
 gampredlist <- list()
-for (i in 1:length(levels(AllMeans$macrounit))){
+for (i in 1:length(macrounits)){
   macrounits <- levels(AllMeans$macrounit)
   gamlist[[i]] <- gamm(MDperKMsqSpring_mean ~ s(year, fx = FALSE, k = -1,bs = "cr"), data=AllMeans, subset=(macrounit == macrounits[i]))
   gampredlist[[i]] <- predict(gamlist[[i]]$gam, se.fit=T, type="response")
@@ -40,9 +39,9 @@ for (i in 1:length(levels(AllMeans$macrounit))){
 #GAm with Autocorrelation
 gam_corlist <- list()
 gam_corpredlist <- list()
-for (i in 1:length(levels(AllMeans$macrounit))){
+for (i in 1:length(macrounits)){
   macrounits <- levels(AllMeans$macrounit)
-  gam_corlist[[i]] <- gamm(MDperKMsqSpring_mean ~ s(year), data=AllMeans, correlation = corCAR1(form=~year), subset=(macrounit == macrounits[i]))
+  gam_corlist[[i]] <- gamm(MDperKMsqSpring_mean ~ s(year, fx = FALSE, k = -1,bs = "cr"), data=AllMeans, correlation = corCAR1(form=~year), subset=(macrounit == macrounits[i]))
   gam_corpredlist[[i]] <- predict(gam_corlist[[i]]$gam, se.fit=T, type="response")
 }
 
@@ -61,35 +60,62 @@ for (i in 1:length(levels(AllMeans$macrounit))){
   lines(x=AllMeans$year[cond], gam_corpredlist[[i]]$fit  + 2 * gam_corpredlist[[i]]$se.fit, col="blue", lty=2)
   lines(x=AllMeans$year[cond], gam_corpredlist[[i]]$fit  - 2 * gam_corpredlist[[i]]$se.fit, col="blue", lty=2)  
 }
-title("GAM (+Autocorrelation)", outer=TRUE)
+title("GAM per macrounit with/without autocorrelation", outer=TRUE)
 
 #legend("bottomright", legend=c("no Autocorrelation", "Autocorrelation"),col=c("red", "blue"), lty=1) 
 
 
 # GAM for whole area, no autocorrelation, macrounit as an interaction factor
 
-plot(AllMeans$MDperKMsqSpring_mean[macrounit == "0-1"]~AllMeans$year[macrounit == "0-1"], type="p")#comparison datapoints vs. mean
-
+plot(AllMeans$MDperKMsqSpring_mean~AllMeans$year, type="p",pch=16)#comparison datapoints vs. mean
 lines(WholeAreaMeans$MDperKMsqSpring_mean~WholeAreaMeans$year)
 
-all01 <- AllMeans$MDperKMsqSpring_mean[AllMeans$macrounit == "0-1"]
-all02 <- AllMeans$MDperKMsqSpring_mean[AllMeans$macrounit == "0-2"]
-all03 <- AllMeans$MDperKMsqSpring_mean[AllMeans$macrounit == "0-3"]
-all04 <- AllMeans$MDperKMsqSpring_mean[AllMeans$macrounit == "0-4"]
+gam_all0 <- gam(MDperKMsqSpring_mean ~ s(year) + factor(macrounit), data=AllMeans)
+gam_all <- gam(MDperKMsqSpring_mean ~ s(year)+s(year, by=as.numeric(macrounit == "0-1"))+s(year, by=as.numeric(macrounit == "0-2"))+s(year, by=as.numeric(macrounit == "0-3"))+s(year, by=as.numeric(macrounit == "0-4"))+factor(macrounit), data=AllMeans)
+gam_allpred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
+gam_allpred <- cbind(gam_allpred, predict(gam_all, se.fit=T, type="response"))
 
-gam_all <- gam(MDperKMsqSpring_mean ~ s(year)+s(year, by = as.numeric(ID == 13)) +
-                 factor(ID), data=AllMeans)
-gam_allpred <- predict(gam_all$gam, se.fit=T, type="response")
+par(mfrow=c(2,2),oma=c(2,0,2,0))
+macrounits <- levels(AllMeans$macrounit)
+for (i in 1:length(macrounits)){
+  cond = which(AllMeans$macrounit==macrounits[i])  
+  plot(AllMeans$MDperKMsqSpring_mean[cond]~AllMeans$year[cond], type="p", main=macrounits[i], xlab="Year", ylab="Density per km²")
+  
+  lines(x=AllMeans$year[cond], gam_allpred$fit[cond], col="orange")
+  lines(x=AllMeans$year[cond], gam_allpred$fit[cond]  + 2 * gam_allpred$se.fit[cond], col="orange", lty=2)
+  lines(x=AllMeans$year[cond], gam_allpred$fit[cond]  - 2 * gam_allpred$se.fit[cond], col="orange", lty=2)
+}
+title("GAM of whole Area", outer=TRUE)
 
+# problem: still one smooth for each macrounit, but not the deviation for each macrounit from overall smooth --> ?gam.models
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### ---Plots of all factors per macrounit
+
+# Spring population density (sq km) (raw data per study area)
+
+PopDenSpring <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, MDperKMsqSpring = mules1962$MDperKMsqSpring)
+PopDenSpring_mean <- t(tapply(X=PopDenSpring$MDperKMsqSpring, INDEX=c(list(PopDenSpring$macrounit), list(PopDenSpring$year)), FUN=mean, na.rm=T))
+PopDenSpring_mean_m <- melt(PopDenSpring_mean)
+names(PopDenSpring_mean_m) <- c("year", "macrounit", "PopDenSpring_mean")
 
 # Harvest density antlered+antlerless (sq km) (raw data per macrounit, density per size of badlands in each huntingunit)
 HuntDenAll  <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, HuntDenAll = mules1962$d3) 
 HuntDenAll_mean <- t(tapply(X=HuntDenAll$HuntDenAll, INDEX=c(list(HuntDenAll$macrounit), list(HuntDenAll$year)), FUN = mean, na.rm=T)) #not really necessary as hunting data only available per huntin macrounit (but easiest way to extract data)
 HuntDenAll_mean_m <- melt(HuntDenAll_mean)
 names(HuntDenAll_mean_m) <- c("year", "macrounit", "HuntDen_mean")
-
-
-
 
 #--------
 # Coyote Density (raw data per study area, regrouped into macrounits)(100 sq km)
@@ -158,6 +184,5 @@ plot(sub_PopDenSpring04$PopDenSpring_mean~sub_PopDenSpring04$year, main="0 - 4",
 abline(lm_sub_PopDenSpring01, add=TRUE, col=4)
 
 
-##----area sizes
 
 
