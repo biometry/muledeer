@@ -70,24 +70,31 @@ title("GAM per macrounit with/without autocorrelation", outer=TRUE)
 plot(AllMeans$MDperKMsqSpring_mean~AllMeans$year, type="p",pch=16)#comparison datapoints vs. mean
 lines(WholeAreaMeans$MDperKMsqSpring_mean~WholeAreaMeans$year)
 
-gam_all0 <- gam(MDperKMsqSpring_mean ~ s(year) + factor(macrounit), data=AllMeans)
-gam_all <- gam(MDperKMsqSpring_mean ~ s(year)+s(year, by=as.numeric(macrounit == "0-1"))+s(year, by=as.numeric(macrounit == "0-2"))+s(year, by=as.numeric(macrounit == "0-3"))+s(year, by=as.numeric(macrounit == "0-4"))+factor(macrounit), data=AllMeans)
-gam_allpred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
-gam_allpred <- cbind(gam_allpred, predict(gam_all, se.fit=T, type="response"))
+# One smoother without effect of macrounits
+gam_all0 <- gam(MDperKMsqSpring_mean ~ s(year), data=AllMeans)
+gam_all0pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
+gam_all0pred <- cbind(gam_all0pred, predict(gam_all0, se.fit=T, type="response"))
+# One smoother for all macrounits
+gam_all1 <- gam(MDperKMsqSpring_mean ~ s(year) + factor(macrounit), data=AllMeans)
+gam_all1pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
+gam_all1pred <- cbind(gam_all1pred, predict(gam_all1, se.fit=T, type="response"))
+# Seperate smoothers for each macrounit
+gam_all2 <- gam(MDperKMsqSpring_mean ~ s(year)+s(year, by=as.numeric(macrounit == "0-1"))+s(year, by=as.numeric(macrounit == "0-2"))+s(year, by=as.numeric(macrounit == "0-3"))+s(year, by=as.numeric(macrounit == "0-4"))+factor(macrounit), data=AllMeans)
+gam_all2pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
+gam_all2pred <- cbind(gam_all2pred, predict(gam_all2, se.fit=T, type="response"))
+macrounitplots(glmobject = gam_all2pred,title="GAM2 - interaction",colour="red")
 
-par(mfrow=c(2,2),oma=c(2,0,2,0))
-macrounits <- levels(AllMeans$macrounit)
-for (i in 1:length(macrounits)){
-  cond = which(AllMeans$macrounit==macrounits[i])  
-  plot(AllMeans$MDperKMsqSpring_mean[cond]~AllMeans$year[cond], type="p", main=macrounits[i], xlab="Year", ylab="Density per km²")
-  
-  lines(x=AllMeans$year[cond], gam_allpred$fit[cond], col="orange")
-  lines(x=AllMeans$year[cond], gam_allpred$fit[cond]  + 2 * gam_allpred$se.fit[cond], col="orange", lty=2)
-  lines(x=AllMeans$year[cond], gam_allpred$fit[cond]  - 2 * gam_allpred$se.fit[cond], col="orange", lty=2)
-}
-title("GAM of whole Area", outer=TRUE)
+# linear regression for comparison
+glm_all <- glm(MDperKMsqSpring_mean~year,family=gaussian,data=AllMeans)
+glm_allpred <- predict(glm_all,se.fit=T, type="response")
+plot(AllMeans$MDperKMsqSpring_mean~AllMeans$year, type="p",pch=16)#comparison datapoints vs. mean
+lines(glm_allpred$fit~AllMeans$year, col="red")
 
-# problem: still one smooth for each macrounit, but not the deviation for each macrounit from overall smooth --> ?gam.models
+# glm including macrounits as predictor
+glm_all2 <- glm(MDperKMsqSpring_mean~year+macrounit,family=gaussian,data=AllMeans)
+glm_all2pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
+glm_all2pred <- cbind(glm_all2pred,as.data.frame(predict(glm_all2, se.fit=T, type="response")))
+macrounitplots(glmobject = glm_all2pred, title="GLM2 - macrounit as predictor",colour="blue")
 
 
 
