@@ -1,112 +1,48 @@
-# Load whole data set:
-allmules <- read.csv("muledeer_final_dataset.csv")
-
-# Only use the time series starting in 1962:
-mules1962 <- subset(allmules, year>1961)
-
 # Load extra packages:
 library(lattice) # for xyplot
 library(ggplot2)
-library(mgcv)
-theme_set(theme_bw()) # Black-and-white theme for ggplot instead of the default grey background
 
 # load supplementary functions
 source("Supplementary_Functions.R")
 
-# ALL IN ONE PER MACROUNIT----------------------------------------------------------
+# Load whole data set:
+allmules <- read.csv("muledeer_final_dataset.csv")
+
+# Gaps in Data
+NAs_fall <- melt(tapply(X=allmules$TotalMDFall, INDEX=list(allmules$year), FUN=count_nas))
+plot(NAs_fall, type="h", main="NAs in dataset")
+NAs_spring <- melt(tapply(X=allmules$NumbMDSpring, INDEX=list(allmules$year), FUN=count_nas))
+#plot(NAs_spring, type="h")
+lines(NAs_spring, col="red")
+legend("topright", legend=c("TotalMDFall","NumbMDSpring"), col=c("black","red"),lty=1)
+#-> more gaps in fall, best to use data from 1962-2012
+#-> but fall data includes sex+fawn data, more useful for future models
+
+# Only use the time series starting in 1962 and drop 3 study sites that were scarcely-surveyed(see report:
+mules1962 <- subset(allmules, year>1961)
+del <- which(mules1962$StudyArea == "Bible_Camp" | mules1962$StudyArea == "NUTRNP"| mules1962$StudyArea == "SUTRNP")
+mules1962 <- mules1962[-del,]
+
+### --- Data Extraction
+#raw data per macrounit
 AllData <- extract(data=mules1962, columns=c("year", "macrounit","MDperKMsqSpring","d3","spring_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"))
 names(AllData) <- c("year", "macrounit","MDperKMsqSpring", "HuntDen_All", "CoyoteDen", "WTailDen", "WellDen", "WoodyVeg")
-AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring","d3","spring_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("macrounit","year"))
-names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
-WholeAreaMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring","d3","spring_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("year"))
+#means per macrounit
+AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall","d3","spring_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("macrounit","year"))
+names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "MDperKMsqFall_mean", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
+#means of whole area 
+WholeAreaMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring","MDperKMsqFall", "d3","spring_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("year"))
 WholeAreaMeans <- WholeAreaMeans[,-1]
-names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
+names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "MDperKMsqFall_mean", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
 
 
-
-
-
-### GAMs of spring MD Population 
-# GAM without Autocorrelation
-gamlist <- list()
-gampredlist <- list()
-for (i in 1:length(macrounits)){
-  macrounits <- levels(AllMeans$macrounit)
-  gamlist[[i]] <- gamm(MDperKMsqSpring_mean ~ s(year, fx = FALSE, k = -1,bs = "cr"), data=AllMeans, subset=(macrounit == macrounits[i]))
-  gampredlist[[i]] <- predict(gamlist[[i]]$gam, se.fit=T, type="response")
-}
-
-#GAm with Autocorrelation
-gam_corlist <- list()
-gam_corpredlist <- list()
-for (i in 1:length(macrounits)){
-  macrounits <- levels(AllMeans$macrounit)
-  gam_corlist[[i]] <- gamm(MDperKMsqSpring_mean ~ s(year, fx = FALSE, k = -1,bs = "cr"), data=AllMeans, correlation = corCAR1(form=~year), subset=(macrounit == macrounits[i]))
-  gam_corpredlist[[i]] <- predict(gam_corlist[[i]]$gam, se.fit=T, type="response")
-}
-
-
-# Plot
-par(mfrow=c(2,2),oma=c(2,0,2,0))
-for (i in 1:length(levels(AllMeans$macrounit))){
-  cond = which(AllMeans$macrounit==macrounits[i])  
-  plot(AllMeans$MDperKMsqSpring_mean[cond]~AllMeans$year[cond], type="p", main=macrounits[i], xlab="Year", ylab="Density per km²")
-
-  lines(x=AllMeans$year[cond], gampredlist[[i]]$fit, col="red") #no correlation
-  lines(x=AllMeans$year[cond], gampredlist[[i]]$fit  + 2 * gampredlist[[i]]$se.fit, col="red", lty=2)
-  lines(x=AllMeans$year[cond], gampredlist[[i]]$fit  - 2 * gampredlist[[i]]$se.fit, col="red", lty=2)
-
-  lines(x=AllMeans$year[cond], gam_corpredlist[[i]]$fit, col="blue") #correlation 
-  lines(x=AllMeans$year[cond], gam_corpredlist[[i]]$fit  + 2 * gam_corpredlist[[i]]$se.fit, col="blue", lty=2)
-  lines(x=AllMeans$year[cond], gam_corpredlist[[i]]$fit  - 2 * gam_corpredlist[[i]]$se.fit, col="blue", lty=2)  
-}
-title("GAM per macrounit with/without autocorrelation", outer=TRUE)
-
-#legend("bottomright", legend=c("no Autocorrelation", "Autocorrelation"),col=c("red", "blue"), lty=1) 
-
-
-# GAM for whole area, no autocorrelation, macrounit as an interaction factor
-
-plot(AllMeans$MDperKMsqSpring_mean~AllMeans$year, type="p",pch=16)#comparison datapoints vs. mean
-lines(WholeAreaMeans$MDperKMsqSpring_mean~WholeAreaMeans$year)
-
-# One smoother without effect of macrounits
-gam_all0 <- gam(MDperKMsqSpring_mean ~ s(year), data=AllMeans)
-gam_all0pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
-gam_all0pred <- cbind(gam_all0pred, predict(gam_all0, se.fit=T, type="response"))
-# One smoother for all macrounits
-gam_all1 <- gam(MDperKMsqSpring_mean ~ s(year) + factor(macrounit), data=AllMeans)
-gam_all1pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
-gam_all1pred <- cbind(gam_all1pred, predict(gam_all1, se.fit=T, type="response"))
-# Seperate smoothers for each macrounit
-gam_all2 <- gam(MDperKMsqSpring_mean ~ s(year)+s(year, by=as.numeric(macrounit == "0-1"))+s(year, by=as.numeric(macrounit == "0-2"))+s(year, by=as.numeric(macrounit == "0-3"))+s(year, by=as.numeric(macrounit == "0-4"))+factor(macrounit), data=AllMeans)
-gam_all2pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
-gam_all2pred <- cbind(gam_all2pred, predict(gam_all2, se.fit=T, type="response"))
-macrounitplots(glmobject = gam_all2pred,title="GAM2 - interaction",colour="red")
-
-# linear regression for comparison
-glm_all <- glm(MDperKMsqSpring_mean~year,family=gaussian,data=AllMeans)
-glm_allpred <- predict(glm_all,se.fit=T, type="response")
-plot(AllMeans$MDperKMsqSpring_mean~AllMeans$year, type="p",pch=16)#comparison datapoints vs. mean
-lines(glm_allpred$fit~AllMeans$year, col="red")
-
-# glm including macrounits as predictor
-glm_all2 <- glm(MDperKMsqSpring_mean~year+macrounit,family=gaussian,data=AllMeans)
-glm_all2pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
-glm_all2pred <- cbind(glm_all2pred,as.data.frame(predict(glm_all2, se.fit=T, type="response")))
-macrounitplots(glmobject = glm_all2pred, title="GLM2 - macrounit as predictor",colour="blue")
-
-
-
-
-
-
-
-
-
-
-
-
+### ---Comparison of Spring/Fall MD Densities
+par(mfrow=c(1,2))
+plot(AllMeans$MDperKMsqSpring_mean~AllMeans$year, type="p",pch=16, main="Spring")#comparison datapoints vs. overall mean
+lines(WholeAreaMeans$MDperKMsqSpring~WholeAreaMeans$year, col="red")
+plot(AllMeans$MDperKMsqFall_mean~AllMeans$year, type="p",pch=16, main="Fall")#comparison datapoints vs. overall mean
+lines(WholeAreaMeans$MDperKMsqFall~WholeAreaMeans$year,col="red")
+# show same pattern
 
 
 ### ---Plots of all factors per macrounit

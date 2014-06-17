@@ -3,6 +3,9 @@
 library(reshape2)
 
 
+###---------Count NAs
+count_nas <- function(x) length(which(is.na(x)))
+
 ###---------Data Extraction
 extract <- function(data, columns=NULL, fun = NULL, xvar, listvar){
   if (is.null(fun)) { #only raw data?
