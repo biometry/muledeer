@@ -29,7 +29,12 @@ extract <- function(data, columns=NULL, fun = NULL, xvar, listvar){
     return(b)}    
 }
 
-#only problem left: names might not be assigned correctly
+#problems left: 
+#1. names might not be assigned correctly
+#2. if one of the xvars is shorter than the one processed before because ofna.rm, that cell is still assigned NA
+#   also if there are rows missing due to NAs in first column -> values of other columns might be lost
+#   SOLUTION: y(including NAs)~AllMeans$year[which(!is.na(AllMeans$y))]
+
 # tested via: mean(mules1962$d3[which(mules1962$year == 1962 & mules1962$macrounit == "0-1")])
 
 ###-------- One plot per macrounit displaying gam-object
