@@ -28,10 +28,10 @@ mules1962 <- mules1962[-del,]
 AllData <- extract(data=mules1962, columns=c("year", "macrounit","MDperKMsqSpring","d3","spring_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"))
 names(AllData) <- c("year", "macrounit","MDperKMsqSpring", "HuntDen_All", "CoyoteDen", "WTailDen", "WellDen", "WoodyVeg")
 #means per macrounit
-AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall","d3","spring_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("macrounit","year"))
+AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall","d3","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("macrounit","year"))
 names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "MDperKMsqFall_mean", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
 #means of whole area 
-WholeAreaMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring","MDperKMsqFall", "d3","spring_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("year"))
+WholeAreaMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring","MDperKMsqFall", "d3","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("year"))
 WholeAreaMeans <- WholeAreaMeans[,-1]
 names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "MDperKMsqFall_mean", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
 
@@ -45,7 +45,7 @@ lines(WholeAreaMeans$MDperKMsqFall~WholeAreaMeans$year,col="red")
 # show same pattern
 
 
-### ---Plots of all factors per macrounit
+### ---Plots of all factors per macrounit (annual and spring data)
 
 # Spring population density (sq km) (raw data per study area)
 
@@ -61,7 +61,7 @@ HuntDenAll_mean_m <- melt(HuntDenAll_mean)
 names(HuntDenAll_mean_m) <- c("year", "macrounit", "HuntDen_mean")
 
 #--------
-# Coyote Density (raw data per study area, regrouped into macrounits)(100 sq km)
+# Coyote Spring Density (raw data per study area, regrouped into macrounits)(100 sq km)
 CoyoteDen <- data.frame(StudyArea = mules1962$StudyArea, macrounit = mules1962$macrounit, year = mules1962$year, CoyoteDen = mules1962$spring_density_coyote_by_macrounit_100km2)
 CoyoteDen_mean <- t(tapply(X=CoyoteDen$CoyoteDen, INDEX=c(list(CoyoteDen$macrounit), list(CoyoteDen$year)), FUN = mean, na.rm=T))
 CoyoteDen_mean_m <- melt(CoyoteDen_mean)
