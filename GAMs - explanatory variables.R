@@ -2,7 +2,9 @@
 
 library(mgcv)
 library(reshape2)
+library(car)
 source("Supplementary_Functions.R")
+
 allmules <- read.csv("muledeer_final_dataset.csv")
 
 # Only use the time series starting in 1962 and drop 3 study sites that were scarcely-surveyed:
@@ -10,17 +12,32 @@ mules1962 <- subset(allmules, year>1961)
 del <- which(mules1962$StudyArea == "Bible_Camp" | mules1962$StudyArea == "NUTRNP"| mules1962$StudyArea == "SUTRNP")
 mules1962 <- mules1962[-del,]
 
-#Data Extraction
-AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall","Average_of_Minimum_temperature_11_4", "d3","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("macrounit","year"))
-names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "MDperKMsqFall_mean", "AvrgWinterMinTemp", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
+#Data Extraction (more data included than in other R-Scripts!)
+AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall","Fw.FratioFall", "Average_of_Minimum_temperature_11_4", "d3","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("macrounit","year"))
+names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "MDperKMsqFall_mean", "Fw.FratioFall_mean", "AvrgWinterMinTemp", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
 
-# Seperate smoothers for each macrounit
-count_nas(AllMeans$AvrgWinterMinTemp)
-
-#gam_expl <- gam(MDperKMsqFall_mean ~ s(year) + s(AvrgWinterMinTemp, by=macrounit) + macrounit, data=AllMeans)
-#gam_expl2 <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit) +s(AvrgWinterMinTemp, by=macrounit) + macrounit, data=AllMeans)
+# Data Analysis of data that is added for this step
+count_nas(AllMeans$AvrgWinterMinTemp)#0, ok
+count_nas(AllMeans$Fw.FratioFall_mean)#ok
 
 
+#Check for outliers of data that is added for this step
+plot(AllMeans$AvrgWinterMinTemp)
+
+
+#Check for collinearity between predictors
+source("HighstatLibV6_correlation_functions.R") # Replacement for AEV-package of Zuur et al
+z <- AllMeans[,!(names(AllMeans) %in% c("year","macrounit", "MDperKMsqSpring_mean","WTailDen_mean"))] 
+z <- na.omit(z)#otherwise each NA produces NAin output of correlation matrix
+par(oma=c(2,0,2,0))
+pairs(z, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist)
+
+Mypairs(z)
+
+pairs
+title("Pairwise Pearson Correlation", outer=TRUE)
+cormatrix <- cor(z) # no correlation >(-)0.4 so ok
+vif <- corvif(z)# all values <10, so ok
 ###Effect of Average Minimum Winter Temperature on each macrounit
 gam_temp <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, by=macrounit) + macrounit, data=AllMeans)
 #second try (including year:temp interaction as well)
@@ -44,7 +61,45 @@ plot(gam_tempres ~AllMeans$year[which(!is.na(AllMeans$MDperKMsqFall_mean))]) #
 acf(gam_tempres, na.action = na.pass,main = "Auto-correlation plot for residuals gam_temp fall")
 
 
+macrounitplots(glmobject = gam_all2pred,title="GAM2 fall - interaction year:MDdensity",colour="red")
 
+summary(gam_all2)
+par(oma=c(2,0,2,0))
+gam.check(gam_all2)#residual show clear patterns -> normal distribution?variance homogenity?
+title("Gam_all2 fall residual check", outer=TRUE)
+
+gam_all3 <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit) + te(AvrgWinterMinTemp,CoyoteDen_mean, bs="cs"), data=AllMeans)
+gam_all3pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
+gam_all3pred <- cbind(gam_all3pred, predict(gam_all3, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit, "CoyoteDen_mean"=AllMeans$CoyoteDen_mean,"AvrgWinterMinTemp"= AllMeans$AvrgWinterMinTemp), type="response"))
+macrounitplots(glmobject = gam_all3pred,title="GAM3 fall - interaction Coyote+Temp",colour="red")
+
+summary(gam_all4$gam)
+
+gam_all4 <- gamm(MDperKMsqFall_mean ~ s(year, by=macrounit) + te(AvrgWinterMinTemp,CoyoteDen_mean, bs="cs"), correlation = corAR1(form=~year|macrounit), data=AllMeans)
+vis.gam(gam_all4$gam)
+AIC(gam_all4$lme)
+
+gam_all4b <- gamm(MDperKMsqFall_mean ~ s(year, by=macrounit) + s(CoyoteDen_mean, bs="cs") + s(AvrgWinterMinTemp), correlation = corAR1(form=~year|macrounit), data=AllMeans)
+summary(gam_all4b$lme)
+summary(gam_all4b$gam)
+plot(gam_all4b$gam)
+AIC(gam_all4b$lme)
+
+
+gam_all5 <- gamm(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs"), correlation = corAR1(form=~year|macrounit), data=AllMeans)
+summary(gam_all5$lme)
+plot(gam_all5$gam)
+
+gam_all5 <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit)+ s(AvrgWinterMinTemp, bs="cs"), data=AllMeans)
+summary(gam_all5)
+plot(gam_all5)
+AIC(gam_all5)
+
+
+plot(gam_all4$gam)
+par(mfrow=c(1,1))
+vis.gam(gam_all2)
+vis.gam(gam_all3)
 ###Effect of hunting Density on each macrounit
 #gam_hunt <- gam(MDperKMsqFall_mean ~ s(HuntDen_All_mean, by=macrounit) + macrounit, data=AllMeans)
 #second try(interaction year:hunt):
