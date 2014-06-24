@@ -92,9 +92,6 @@ WoodyVeg_mean_m <- melt(WoodyVeg_mean)
 names(WoodyVeg_mean_m) <- c("year", "macrounit", "WoodyVeg_mean")
 WoodyVeg_mean_m <- (WoodyVeg_mean_m)
 
-MyPanel <- function(x, y, subscripts) {
-  panel.xyplot(x, y, type = "l")
-  panel.abline(lm(y ~ x))}
 
 xyplot(PopDenSpring_mean + HuntDenAll_mean ~ year | macrounit, data=c(PopDenSpring_mean_m, HuntDenAll_mean_m), subscripts=TRUE, panel=function(...) panel.superpose(panel.groups=MyPanel, ...), type="l", auto.key = list(space = "top", text = c("Population Density", "Hunting Density")), xlab = "Year", ylab= "Density per km?", main = "Mean Spring Population Density and Mean Harvesting Density")
 

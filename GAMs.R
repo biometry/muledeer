@@ -5,18 +5,6 @@ library(reshape2)
 source("Supplementary_Functions.R")
 allmules <- read.csv("muledeer_final_dataset.csv")
 
-# Only use the time series starting in 1962 and drop 3 study sites that were scarcely-surveyed:
-mules1962 <- subset(allmules, year>1961)
-del <- which(mules1962$StudyArea == "Bible_Camp" | mules1962$StudyArea == "NUTRNP"| mules1962$StudyArea == "SUTRNP")
-mules1962 <- mules1962[-del,]
-
-#Data Extraction
-AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall","d3","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("macrounit","year"))
-names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "MDperKMsqFall_mean", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
-WholeAreaMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring","MDperKMsqFall", "d3","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("year"))
-WholeAreaMeans <- WholeAreaMeans[,-1]
-names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "MDperKMsqFall_mean", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
-
 
 ######################FALL MD DENSITIES##########################################
 

@@ -48,3 +48,17 @@ for (i in 1:length(levels(AllMeans$macrounit))){
   lines(x=AllMeans$year[cond], gam_corpredlist[[i]]$fit  - 2 * gam_corpredlist[[i]]$se.fit, col="blue", lty=2)  
 }
 title("GAM per macrounit with/without autocorrelation", outer=TRUE)
+
+
+###Calculating hunting density per area of badlands within each macrounit from badland area size per hunting unit
+#load "total_harves_MDgunHarvest" into AllMeans
+#unique(mules1962[which(mules1962$year == 1990),]$total_harvest_MDgunHarvest) verify that raw hunting data was produced on macrounit-scale
+badlands <- data.frame(hunting_unit = c("4A","4B","4C","4D","4E","4F"), badlands_area_sqkm = c(411,545,568,495,243,127)*2.58998811, macrounit=c("0-4","0-3","0-3","0-2","0-2","0-1")) #from sq miles to sq km
+badlands <- melt(t(tapply(badlands$badlands_area_sqkm, INDEX=list(badlands$macrounit), FUN=sum)))
+AllMeans <- cbind(AllMeans, HuntDen_All = numeric(length(AllMeans$year)))
+for (i in 1:4){
+  cond <- which(AllMeans$macrounit == badlands[i,2])
+  AllMeans$HuntDen_All[cond] = AllMeans$TotalHarvest_mean[cond] / badlands[i,3]
+}
+x <- AllMeans$HuntDen_All-AllMeans$HuntDen_All
+# turned out to be completely unnecessary 

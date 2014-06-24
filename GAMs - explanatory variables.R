@@ -1,5 +1,7 @@
 ###------GAMs of fall MD population density including explanatory variables, no autocorrelation
 
+# As this analysis is supposed to result in information how to start with a population density model, some of the data were excluded/modified/recalculated
+
 library(mgcv)
 library(reshape2)
 library(car)
@@ -13,13 +15,13 @@ del <- which(mules1962$StudyArea == "Bible_Camp" | mules1962$StudyArea == "NUTRN
 mules1962 <- mules1962[-del,]
 
 #Data Extraction (more data included than in other R-Scripts!)
-AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall","Fw.FratioFall", "Average_of_Minimum_temperature_11_4", "d3","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage"), listvar=c("macrounit","year"))
-names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "MDperKMsqFall_mean", "Fw.FratioFall_mean", "AvrgWinterMinTemp", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean")
 
 # Data Analysis of data that is added for this step
 count_nas(AllMeans$AvrgWinterMinTemp)#0, ok
-count_nas(AllMeans$Fw.FratioFall_mean)#ok
-
+count_nas(AllMeans$FawnFall_mean)#7
+count_nas(AllMeans$FemaleFall_mean)#7
+count_nas(AllMeans$MaleFall_mean)#7
+count_nas(AllMeans$RepRateFall_mean)#7
 
 #Check for outliers of data that is added for this step
 plot(AllMeans$AvrgWinterMinTemp)
@@ -27,17 +29,15 @@ plot(AllMeans$AvrgWinterMinTemp)
 
 #Check for collinearity between predictors
 source("HighstatLibV6_correlation_functions.R") # Replacement for AEV-package of Zuur et al
-z <- AllMeans[,!(names(AllMeans) %in% c("year","macrounit", "MDperKMsqSpring_mean","WTailDen_mean"))] 
-z <- na.omit(z)#otherwise each NA produces NAin output of correlation matrix
+z <- AllMeans[,!(names(AllMeans) %in% c("macrounit", "MDperKMsqSpring_mean","WTailDen_mean","FawnFall_mean","MaleFall_mean","FemaleFall_mean"))] 
 par(oma=c(2,0,2,0))
-pairs(z, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist)
+pairs(z, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist) #not too informative
 
-Mypairs(z)
-
-pairs
 title("Pairwise Pearson Correlation", outer=TRUE)
-cormatrix <- cor(z) # no correlation >(-)0.4 so ok
+cormatrix <- cor(z, use="pairwise.complete.obs") # no correlation >(-)0.4 so ok
+write(cormatrix, "correlation matrix predictors.txt", sep="\t")
 vif <- corvif(z)# all values <10, so ok
+
 ###Effect of Average Minimum Winter Temperature on each macrounit
 gam_temp <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, by=macrounit) + macrounit, data=AllMeans)
 #second try (including year:temp interaction as well)
