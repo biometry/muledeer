@@ -32,16 +32,26 @@ plot(AllMeans$MDperKMsqFall_mean~AllMeans$year, type="p",pch=16)#comparison data
 lines(WholeAreaMeans$MDperKMsqFall_mean~WholeAreaMeans$year)
 
 # One smoother without effect of macrounits
-gam_all0 <- gam(MDperKMsqFall_mean ~ s(year), data=AllMeans)
+gam_all0 <- gam(MDperKMsqFall_mean ~ s(year, bs = "cs") , data=AllMeans)
 gam_all0pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
 gam_all0pred <- cbind(gam_all0pred, predict(gam_all0, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit), type="response"))
-macrounitplots(gam_all0pred, col=2)
+plot(gam_all0, col=2)
+summary(gam_all0)
+AIC(gam_all0)
+
+gam_all0res <- residuals(gam_all0, type = "deviance")
+plot(gam_all0res ~AllMeans$year[which(!is.na(AllMeans$MDperKMsqFall_mean))]) #
+acf(gam_all0res, na.action = na.pass,main = "Auto-correlation plot for residuals Gam_all0 fall")
+
+
 # One smoother for all macrounits
-gam_all1 <- gam(MDperKMsqFall_mean ~ s(year) + factor(macrounit), data=AllMeans)
+gam_all1 <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + factor(macrounit), data=AllMeans)
+summary(gam_all1)
+AIC(gam_all1)
 gam_all1pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
 gam_all1pred <- cbind(gam_all1pred, predict(gam_all1, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit), type="response"))
 # Seperate smoothers for each macrounit
-gam_all2 <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit) + macrounit, data=AllMeans)
+gam_all2 <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit, bs="cs") + macrounit, data=AllMeans)
 gam_all2pred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
 gam_all2pred <- cbind(gam_all2pred, predict(gam_all2, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit), type="response"))
 macrounitplots(glmobject = gam_all2pred,title="GAM2 fall - interaction",colour="red")
@@ -57,6 +67,32 @@ gam_all2res <- residuals(gam_all2, type = "deviance")
 plot(gam_all2res ~AllMeans$year[which(!is.na(AllMeans$MDperKMsqFall_mean))]) #pattern not too bad?
 acf(gam_all2res, na.action = na.pass,main = "Auto-correlation plot for residuals Gam_all2 fall")
 
+# Smoother for whole area but from means of each year (WholeAreaMeans) for comparison with gam_all0
+gam_all3 <- gam(MDperKMsqFall_mean ~ s(year, bs="cs"), data=WholeAreaMeans)
+gam_all3pred <- data.frame(year=WholeAreaMeans$year)
+gam_all3pred <- cbind(gam_all3pred, predict(gam_all3, se.fit=T, newdata=data.frame("year"=WholeAreaMeans$year), type="response"))
+plot(gam_all3,main="GAM3 fall - Whole Area Means")
+summary(gam_all3)
+AIC(gam_all3)
+
+gam_all3res <- residuals(gam_all3, type = "deviance")
+plot(gam_all3res ~WholeAreaMeans$year[which(!is.na(WholeAreaMeans$MDperKMsqFall_mean))]) #pattern not too bad?
+acf(gam_all3res, na.action = na.pass,main = "Auto-correlation plot for residuals gam_all3 fall")
+
+par(oma=c(2,0,2,0))
+gam.check(gam_all3)#histogram of residuals doesnt look that great
+title("Gam_all3 fall residual check", outer=TRUE)
+
+#check wether autocorrelation gets even better if corrleation included as factor
+# gam_all3_cor <- gamm(MDperKMsqFall_mean ~ s(year, bs="cs"), data=WholeAreaMeans, correlation = corAR1(form= ~ year))
+# gam_all3_corres <- residuals(gam_all3_cor$gam, type = "deviance")
+# plot(gam_all3_corres ~WholeAreaMeans$year[which(!is.na(WholeAreaMeans$MDperKMsqFall_mean))]) #pattern not too bad?
+# acf(gam_all3_corres, na.action = na.pass,main = "Auto-correlation plot for residuals gam_all3_cor fall")
+# ##-> Autocorrelation gets a lot stronger (!!!!??)
+# par(oma=c(2,0,2,0))
+# gam.check(gam_all3_cor$gam)
+# title("Gam_all3cor fall residual check", outer=TRUE)
+
 
 ###-------- GAM for whole area including autocorrelation, macrounit as an interaction factor
 
@@ -64,7 +100,7 @@ acf(gam_all2res, na.action = na.pass,main = "Auto-correlation plot for residuals
 gam_all2c <- gamm(MDperKMsqFall_mean ~ s(year, by=macrounit) + macrounit, data=AllMeans, correlation=corAR1(form= ~ year | macrounit))
 #gam_all2c <- gamm(MDperKMsqFall_mean ~ s(year, by=macrounit) + macrounit, control=list(niterEM=0,optimMethod="GCV.Cp"), data=AllMeans, correlation=corAR1(form= ~ year| macrounit))
 
-# why is smooth so different?
+# why is smooth so different? fits badly, still autocorrelation present -> because there are several datapoints
 #GCP.Cp is default method of gam AND gamm
 
 gam_all2cpred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
