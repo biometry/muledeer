@@ -134,6 +134,7 @@ gam.check(gam_woodyveg)
 
 ##### All explanatory variables, Whole Area Means (equivalent to gam_all3)
 gam_combine <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean, bs="cs") + s(WellDen_mean, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
+gam_combine <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(WellDen_mean, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
 
 
 #gam_combinepred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit, CoyoteDen_meann=AllMeans$CoyoteDen_mean)
@@ -144,7 +145,25 @@ summary(gam_combine)
 AIC(gam_combine)
 
 gam_combineres <- residuals(gam_combine, type = "deviance")
-plot(gam_combineres ~AllMeans$year[which(!is.na(AllMeans$MDperKMsqFall_mean))]) #
+#plot(gam_combineres ~AllMeans$year[which(!is.na(AllMeans$MDperKMsqFall_mean))]) #
 acf(gam_combineres, na.action = na.pass,main = "Auto-correlation plot for residuals Coyote Density")
+
+gam.check(gam_combine)
+
+
+#### combined gam based on Whole Area Means (equivalent go gam3)
+
+gam_combine3 <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean, bs="cs") + s(WellDen_mean, bs="cs") +  s(WoodyVeg_mean, bs="cs"), data=WholeAreaMeans)
+
+#gam_combinepred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit, CoyoteDen_meann=AllMeans$CoyoteDen_mean)
+#gam_combinepred <- cbind(gam_combinepred, predict(gam_combine, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit, "CoyoteDen_mean"=AllMeans$CoyoteDen_mean), type="response"))
+#macrounitplots(glmobject = gam_combinepred,xcol="CoyoteDen_mean",title="gam_combine fall - effect of Coyote Density",colour="red")
+#macrounitplots(glmobject = gam_combinepred,title="gam_combine fall - effect of Coyote Density",colour="red")
+summary(gam_combine3)
+AIC(gam_combine3)
+
+gam_combine3res <- residuals(gam_combine3, type = "deviance")
+#plot(gam_combine3res ~AllMeans$year[which(!is.na(AllMeans$MDperKMsqFall_mean))]) #
+acf(gam_combine3res, na.action = na.pass,main = "Auto-correlation plot for residuals Coyote Density")
 
 gam.check(gam_combine)

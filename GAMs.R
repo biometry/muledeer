@@ -43,6 +43,9 @@ gam_all0res <- residuals(gam_all0, type = "deviance")
 plot(gam_all0res ~AllMeans$year[which(!is.na(AllMeans$MDperKMsqFall_mean))]) #
 acf(gam_all0res, na.action = na.pass,main = "Auto-correlation plot for residuals Gam_all0 fall")
 
+par(oma=c(2,0,2,0))
+gam.check(gam_all0)
+title("Gam_all0 fall residual check", outer=TRUE)
 
 # One smoother for all macrounits
 gam_all1 <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + factor(macrounit), data=AllMeans)
@@ -73,7 +76,8 @@ gam_all3pred <- data.frame(year=WholeAreaMeans$year)
 gam_all3pred <- cbind(gam_all3pred, predict(gam_all3, se.fit=T, newdata=data.frame("year"=WholeAreaMeans$year), type="response"))
 plot(gam_all3,main="GAM3 fall - Whole Area Means")
 summary(gam_all3)
-AIC(gam_all3)
+AIC(gam_all3) #5
+BIC(gam_all3) #26
 
 gam_all3res <- residuals(gam_all3, type = "deviance")
 plot(gam_all3res ~WholeAreaMeans$year[which(!is.na(WholeAreaMeans$MDperKMsqFall_mean))]) #pattern not too bad?

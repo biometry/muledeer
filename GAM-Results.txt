@@ -1,0 +1,768 @@
+Fall Data
+GLM-RESULTS
+Call:
+glm(formula = MDperKMsqFall_mean ~ year + macrounit, family = gaussian, 
+    data = AllMeans)
+
+Deviance Residuals: 
+    Min       1Q   Median       3Q      Max  
+-1.7635  -0.4713  -0.0217   0.3755   3.6639  
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -46.056165   6.837279  -6.736 1.84e-10 ***
+year           0.023898   0.003441   6.945 5.72e-11 ***
+macrounit0-2   0.390576   0.140213   2.786  0.00588 ** 
+macrounit0-3  -0.189534   0.141681  -1.338  0.18256    
+macrounit0-4   1.062664   0.142407   7.462 2.88e-12 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+(Dispersion parameter for gaussian family taken to be 0.4912574)
+
+    Null deviance: 163.178  on 196  degrees of freedom
+Residual deviance:  94.321  on 192  degrees of freedom
+  (7 observations deleted due to missingness)
+AIC: 425.97
+
+Number of Fisher Scoring iterations: 2
+
+- Similar results to spring data
+- Residuals even worse than the ones of spring data:
+o #- especially assumption of variance homogenity (Resids vs.linear pred plot)
+o #- bias in response vs. fitted values plot, quadratic shape insted of linear
+o #- bias in histogram towards the right, not symmetrical
+
+
+
+
+
+
+GAM-RESULTS
+Population Density ? No Autocorrelation, Whole Area Means
+
+Gam_all3:
+Family: gaussian 
+Link function: identity 
+
+Formula:
+MDperKMsqFall_mean ~ s(year, bs = "cs")
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)    1.702      0.032   53.17   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+          edf Ref.df     F p-value    
+s(year) 8.483  8.923 24.78  <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.813   Deviance explained = 84.4%
+GCV score = 0.06416  Scale est. = 0.05223   n = 51
+AIC: 4.648975
+
+Population Density ? No Autocorrelation, AllMeans
+
+Gam_all0: 
+Family: gaussian 
+Link function: identity 
+
+Formula:
+MDperKMsqFall_mean ~ s(year, bs = "cs")
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  1.75103    0.05362   32.66   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+          edf Ref.df     F p-value    
+s(year) 7.788  8.618 11.12 5.6e-14 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =   0.32   Deviance explained = 34.7%
+GCV score = 0.59279  Scale est. = 0.56635   n = 197
+AIC: 458
+
+
+
+Population Density ? No Autocorrelation, AllMeans, per macrounit
+
+Separate smoothers per macrounit (interaction smoother*factor level) (gam_all2)
+Family: gaussian 
+Link function: identity 
+
+Formula:
+MDperKMsqFall_mean ~ s(year, by = macrounit, bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.43532    0.07588  18.917  < 2e-16 ***
+macrounit0-2  0.39598    0.10620   3.729 0.000264 ***
+macrounit0-3 -0.17838    0.10752  -1.659 0.099005 .  
+macrounit0-4  1.02111    0.10853   9.408  < 2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                       edf Ref.df      F  p-value    
+s(year):macrounit0-1 5.810  6.945  3.754 0.000863 ***
+s(year):macrounit0-2 7.084  8.125  3.790 0.000378 ***
+s(year):macrounit0-3 5.610  6.728  4.656 0.000116 ***
+s(year):macrounit0-4 8.359  8.883 17.268  < 2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.664   Deviance explained = 71.5%
+GCV score = 0.33168  Scale est. = 0.27972   n = 197
+
+AIC: 337.9119
+
+ANOVA:
+ Parametric Terms:
+          df     F p-value
+macrounit  3 47.71  <2e-16
+
+ANOVA to Nullmodell without macrounits as explanatory variable(gam_all0):
+Model 1: MDperKMsqFall_mean ~ s(year)
+Model 2: MDperKMsqFall_mean ~ s(year, by = macrounit) + macrounit
+  Resid. Df Resid. Dev     Df Deviance      F    Pr(>F)    
+1    188.16    106.226                                     
+2    166.36     46.499 21.799   59.727 9.8027 < 2.2e-16 ***
+
+- Less deviance explained than with spring data, AIC higher
+Residuals
+- variance homogeneity?? 
+--> slight pattern in residsvs. Linear plot
+--> response vs. fitted values: more of a curve in value range 0-3
+- normal distribution? Histogram skewed
+
+
+Population Density <-- Average Minimum Temperature
+
+Gam_temp:
+1:
+Family: gaussian 
+Link function: identity 
+
+Formula:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(AvrgWinterMinTemp, 
+    bs = "cs")
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  1.75103    0.05328   32.87   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                        edf Ref.df      F  p-value    
+s(year)              7.8139  8.630 10.021 1.57e-12 ***
+s(AvrgWinterMinTemp) 0.7327  1.033  2.222    0.136    
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.328   Deviance explained = 35.8%
+GCV score = 0.58767  Scale est. = 0.55919   n = 197
+AIC: 456
+2:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(AvrgWinterMinTemp, 
+    by = macrounit, bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)    1.4352     0.0783  18.331  < 2e-16 ***
+macrounit0-2   0.3989     0.1095   3.645 0.000351 ***
+macrounit0-3  -0.1831     0.1109  -1.652 0.100380    
+macrounit0-4   1.0503     0.1115   9.420  < 2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                                        edf    Ref.df      F p-value    
+s(year)                           8.368e+00 8.885e+00 17.995  <2e-16 ***
+s(AvrgWinterMinTemp):macrounit0-1 3.445e-01 5.828e-01  0.906  0.4683    
+s(AvrgWinterMinTemp):macrounit0-2 4.420e-10 8.818e-10  0.241  1.0000    
+s(AvrgWinterMinTemp):macrounit0-3 2.453e-10 4.893e-10  0.030  1.0000    
+s(AvrgWinterMinTemp):macrounit0-4 6.176e+00 7.229e+00  3.548  0.0012 ** 
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.641   Deviance explained = 67.4%
+GCV score = 0.33071  Scale est. = 0.299     n = 197
+> AIC(gam_temp)
+[1] 341.1443
+
+3:
+MDperKMsqFall_mean ~ s(year, by = macrounit, bs = "cs") + s(AvrgWinterMinTemp, 
+    bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.43728    0.07436  19.330  < 2e-16 ***
+macrounit0-2  0.39232    0.10408   3.769 0.000228 ***
+macrounit0-3 -0.18108    0.10534  -1.719 0.087478 .  
+macrounit0-4  1.02024    0.10636   9.592  < 2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                        edf Ref.df      F  p-value    
+s(year):macrounit0-1 5.8025  6.935  3.562 0.001406 ** 
+s(year):macrounit0-2 7.2784  8.274  3.468 0.000880 ***
+s(year):macrounit0-3 5.3037  6.398  4.538 0.000205 ***
+s(year):macrounit0-4 8.4225  8.904 16.768  < 2e-16 ***
+s(AvrgWinterMinTemp) 0.9872  1.290  5.238 0.016761 *  
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.677   Deviance explained = 72.8%
+GCV score = 0.32028  Scale est. = 0.26859   n = 197
+> AIC(gam_temp)
+[1] 331.0079
+
+
+
+
+Population Density <-- Hunting Density d3
+Gam_hunt:
+
+1:
+Formula:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(HuntDen_All_mean, 
+    bs = "cs")
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  1.75103    0.04998   35.03   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                      edf Ref.df     F  p-value    
+s(year)             8.524  8.933 15.27  < 2e-16 ***
+s(HuntDen_All_mean) 4.697  5.664  5.12 0.000107 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.409   Deviance explained = 44.9%
+GCV score = 0.53037  Scale est. = 0.49209   n = 197
+> AIC(gam_hunt)
+[1] 435.051
+
+2:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(HuntDen_All_mean, 
+    by = macrounit, bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.43484    0.07688  18.663  < 2e-16 ***
+macrounit0-2  0.39703    0.10786   3.681 0.000307 ***
+macrounit0-3 -0.18331    0.10890  -1.683 0.094063 .  
+macrounit0-4  1.60074    0.61858   2.588 0.010450 *  
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                                       edf    Ref.df      F  p-value    
+s(year)                          7.969e+00 8.717e+00 11.995 3.31e-15 ***
+s(HuntDen_All_mean):macrounit0-1 1.530e-09 3.039e-09  0.364    1.000    
+s(HuntDen_All_mean):macrounit0-2 2.272e-02 4.454e-02  0.632    0.867    
+s(HuntDen_All_mean):macrounit0-3 4.778e-09 9.408e-09  0.251    1.000    
+s(HuntDen_All_mean):macrounit0-4 5.419e+00 5.659e+00  6.848 2.77e-06 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.653   Deviance explained = 68.2%
+GCV score = 0.31637  Scale est. = 0.28851   n = 197
+> AIC(gam_hunt)
+[1] 332.7208
+
+3:
+MDperKMsqFall_mean ~ s(year, by = macrounit, bs = "cs") + s(HuntDen_All_mean, bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.43227    0.07614  18.811  < 2e-16 ***
+macrounit0-2  0.33839    0.11104   3.047  0.00268 ** 
+macrounit0-3 -0.19500    0.10795  -1.806  0.07265 .  
+macrounit0-4  1.11501    0.12133   9.190  < 2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                        edf Ref.df      F  p-value    
+s(year):macrounit0-1 5.3488 6.4514  3.553 0.001944 ** 
+s(year):macrounit0-2 6.3005 7.4152  3.707 0.000751 ***
+s(year):macrounit0-3 4.9861 6.0290  4.613 0.000220 ***
+s(year):macrounit0-4 8.3079 8.8632 15.061  < 2e-16 ***
+s(HuntDen_All_mean)  0.6079 0.8699  3.724 0.073641 .  
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.663   Deviance explained = 71.2%
+GCV score = 0.32968  Scale est. = 0.28022   n = 197
+> AIC(gam_hunt)
+[1] 337.53
+
+
+Population Density <-- Oil Well Density
+Gam_oil:
+1:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(WellDen_mean, bs = "cs")
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  1.75103    0.04341   40.34   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                  edf Ref.df     F p-value    
+s(year)         8.233  8.841 19.63 < 2e-16 ***
+s(WellDen_mean) 8.961  8.999 11.78 1.9e-15 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.554   Deviance explained = 59.3%
+GCV score = 0.40902  Scale est. = 0.37125   n = 197
+> AIC(gam_oil)
+[1] 383.1552
+
+2:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(WellDen_mean, by = macrounit, 
+    bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)    1.4623     0.0824  17.746  < 2e-16 ***
+macrounit0-2  -0.9581     0.7650  -1.252   0.2120    
+macrounit0-3  -0.2165     0.1155  -1.875   0.0624 .  
+macrounit0-4   1.0279     0.1161   8.856  7.2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                                   edf    Ref.df      F p-value    
+s(year)                      8.425e+00 8.906e+00 18.734  <2e-16 ***
+s(WellDen_mean):macrounit0-1 9.791e-01 1.146e+00  6.200  0.0111 *  
+s(WellDen_mean):macrounit0-2 9.092e-01 1.004e+00  2.884  0.0909 .  
+s(WellDen_mean):macrounit0-3 1.887e-07 3.754e-07  0.029  0.9999    
+s(WellDen_mean):macrounit0-4 1.806e-08 3.592e-08  0.132  0.9999    
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.619   Deviance explained = 64.5%
+GCV score = 0.34174  Scale est. = 0.31691   n = 197
+> AIC(gam_oil)
+[1] 348.4489
+
+3:
+MDperKMsqFall_mean ~ s(year, by = macrounit, bs = "cs") + s(WellDen_mean, 
+    bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.42838    0.07756  18.417  < 2e-16 ***
+macrounit0-2  0.43270    0.12497   3.462 0.000681 ***
+macrounit0-3 -0.20900    0.12131  -1.723 0.086789 .  
+macrounit0-4  1.04329    0.11668   8.942 7.25e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                        edf Ref.df      F  p-value    
+s(year):macrounit0-1 5.6595 6.7689  3.020 0.005793 ** 
+s(year):macrounit0-2 7.0742 8.1176  3.777 0.000394 ***
+s(year):macrounit0-3 5.6499 6.7692  3.722 0.001076 ** 
+s(year):macrounit0-4 8.4067 8.8979 17.076  < 2e-16 ***
+s(WellDen_mean)      0.3289 0.5245  0.604 0.574292    
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.665   Deviance explained = 71.6%
+GCV score = 0.33154  Scale est. = 0.27917   n = 197
+> AIC(gam_oil)
+[1] 338.0695
+
+
+Population Density <-- Coyote Density 
+Gam_coyote.
+1:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(CoyoteDen_mean, bs = "cs")
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  1.75103    0.05287   33.12   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                     edf Ref.df      F p-value    
+s(year)           7.8230  8.638 10.761 1.6e-13 ***
+s(CoyoteDen_mean) 0.9134  1.209  4.363  0.0314 *  
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.339   Deviance explained = 36.8%
+GCV score = 0.5793  Scale est. = 0.55067   n = 197
+> AIC(gam_coyote)
+[1] 453.0159
+
+2:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(CoyoteDen_mean, by = macrounit, 
+    bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)    1.4357     0.0789  18.197  < 2e-16 ***
+macrounit0-2   0.3977     0.1103   3.606 0.000402 ***
+macrounit0-3  -0.1846     0.1118  -1.652 0.100339    
+macrounit0-4   1.1683     0.1171   9.979  < 2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                                     edf    Ref.df      F  p-value    
+s(year)                        8.102e+00 8.780e+00 18.175  < 2e-16 ***
+s(CoyoteDen_mean):macrounit0-1 6.044e-10 1.208e-09  0.104 0.999991    
+s(CoyoteDen_mean):macrounit0-2 4.059e-10 8.100e-10  0.314 0.999987    
+s(CoyoteDen_mean):macrounit0-3 4.885e-10 9.758e-10  0.143 0.999991    
+s(CoyoteDen_mean):macrounit0-4 3.513e+00 4.093e+00  5.105 0.000585 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.635   Deviance explained = 66.2%
+GCV score = 0.33002  Scale est. = 0.30386   n = 197
+> AIC(gam_coyote)
+[1] 341.3591
+
+
+
+3:
+MDperKMsqFall_mean ~ s(year, by = macrounit, bs = "cs") + s(CoyoteDen_mean, 
+    bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.47935    0.07806  18.952   <2e-16 ***
+macrounit0-2  0.29187    0.11316   2.579   0.0108 *  
+macrounit0-3 -0.26916    0.11056  -2.435   0.0160 *  
+macrounit0-4  1.03302    0.11074   9.329   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                       edf Ref.df      F  p-value    
+s(year):macrounit0-1 5.392  6.500  3.062 0.005952 ** 
+s(year):macrounit0-2 6.948  8.013  3.797 0.000395 ***
+s(year):macrounit0-3 5.877  7.002  4.831 5.42e-05 ***
+s(year):macrounit0-4 8.553  8.938 17.523  < 2e-16 ***
+s(CoyoteDen_mean)    2.757  3.371  3.399 0.015861 *  
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.684   Deviance explained = 73.6%
+GCV score = 0.31711  Scale est. = 0.26314   n = 197
+> AIC(gam_coyote)
+[1] 328.357
+
+
+Population Density <-- Woody Vegetation
+Gam_woodyveg:
+1:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(WoodyVeg_mean, bs = "cs")
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  1.75103    0.03974   44.06   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                   edf Ref.df     F p-value    
+s(year)          8.299  8.865 12.98  <2e-16 ***
+s(WoodyVeg_mean) 8.896  8.993 17.94  <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.626   Deviance explained = 65.9%
+GCV score = 0.34285  Scale est. = 0.31119   n = 197
+> AIC(gam_woodyveg)
+[1] 348.3902
+
+2:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(WoodyVeg_mean, by = macrounit, 
+    bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.43106    0.07795  18.360  < 2e-16 ***
+macrounit0-2  0.40049    0.10895   3.676 0.000313 ***
+macrounit0-3 -0.54112    0.73226  -0.739 0.460890    
+macrounit0-4  1.05273    0.13682   7.694 8.96e-13 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                                    edf    Ref.df      F  p-value    
+s(year)                       8.314e+00 8.869e+00 13.820  < 2e-16 ***
+s(WoodyVeg_mean):macrounit0-1 3.858e-10 7.490e-10  0.338 0.999987    
+s(WoodyVeg_mean):macrounit0-2 4.203e-10 8.153e-10  0.008 0.999998    
+s(WoodyVeg_mean):macrounit0-3 3.701e-01 6.039e-01  0.421 0.614676    
+s(WoodyVeg_mean):macrounit0-4 3.932e+00 4.123e+00  5.435 0.000329 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.644   Deviance explained = 67.2%
+GCV score = 0.32357  Scale est. = 0.29643   n = 197
+> AIC(gam_woodyveg)
+[1] 337.3105
+
+
+3.
+MDperKMsqFall_mean ~ s(year, by = macrounit, bs = "cs") + s(WoodyVeg_mean, 
+    bs = "cs") + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)
+(Intercept)     8.195     76.352   0.107    0.915
+macrounit0-2   -7.114     86.950  -0.082    0.935
+macrounit0-3  -10.767    106.389  -0.101    0.920
+macrounit0-4   -7.908    116.484  -0.068    0.946
+
+Approximate significance of smooth terms:
+                       edf Ref.df     F  p-value    
+s(year):macrounit0-1 5.004  6.135 2.725   0.0143 *  
+s(year):macrounit0-2 6.526  7.568 2.241   0.0297 *  
+s(year):macrounit0-3 5.502  6.628 1.684   0.1200    
+s(year):macrounit0-4 5.588  6.139 9.741 1.85e-09 ***
+s(WoodyVeg_mean)     4.492  4.695 0.007   1.0000    
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.666   Deviance explained = 71.7%
+GCV score = 0.33049  Scale est. = 0.2783    n = 197
+> AIC(gam_woodyveg)
+[1] 337.447
+
+Population Density <- Combined Model with all explanatory variables, AllMeans
+Gam_combine:
+
+Therefore on AllMeans:
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(AvrgWinterMinTemp, 
+    bs = "cs") + s(HuntDen_All_mean, bs = "cs") + s(WellDen_mean, 
+    bs = "cs") + s(CoyoteDen_mean, bs = "cs") + s(WoodyVeg_mean, 
+    bs = "cs")
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  1.75103    0.03656    47.9   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                           edf    Ref.df      F  p-value    
+s(year)              8.506e+00 8.927e+00 11.309 1.76e-14 ***
+s(AvrgWinterMinTemp) 2.155e+00 2.718e+00  3.573  0.01921 *  
+s(HuntDen_All_mean)  7.533e-10 1.465e-09  0.071  0.99999    
+s(WellDen_mean)      8.861e+00 8.986e+00  3.092  0.00184 ** 
+s(CoyoteDen_mean)    2.835e+00 3.462e+00  2.823  0.03385 *  
+s(WoodyVeg_mean)     8.686e+00 8.949e+00  6.553 4.56e-08 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.684   Deviance explained = 73.4%
+GCV score = 0.3144  Scale est. = 0.26326   n = 197
+> AIC(gam_combine)
+[1] 327.2608
+
+2: insignificant terms dropped
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(WellDen_mean, bs = "cs") + 
+    s(CoyoteDen_mean, bs = "cs") + s(WoodyVeg_mean, bs = "cs")
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  1.75103    0.03754   46.65   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                    edf Ref.df      F  p-value    
+s(year)           8.309  8.869 10.785 1.09e-13 ***
+s(WellDen_mean)   8.818  8.979  2.658   0.0066 ** 
+s(CoyoteDen_mean) 2.862  3.494  2.981   0.0267 *  
+s(WoodyVeg_mean)  8.715  8.957  6.789 2.09e-08 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.667   Deviance explained = 71.5%
+GCV score = 0.32689  Scale est. = 0.2776    n = 197
+> AIC(gam_combine)
+[1] 335.8014
+
+
+Population Density <- Combined Model with all explanatory variables, WholeAreaMeans
+Gam_combine3:
+
+MDperKMsqFall_mean ~ s(year, bs = "cs") + s(AvrgWinterMinTemp, 
+    bs = "cs") + s(HuntDen_All_mean, bs = "cs") + s(WellDen_mean, 
+    bs = "cs") + s(WoodyVeg_mean, bs = "cs")
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  1.70155    0.02511   67.76   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                        edf Ref.df     F p-value
+s(year)              4.3138  4.455 0.073   0.993
+s(AvrgWinterMinTemp) 0.8147  1.114 1.706   0.198
+s(HuntDen_All_mean)  5.1303  6.086 1.484   0.218
+s(WellDen_mean)      7.1927  7.912 1.829   0.113
+s(WoodyVeg_mean)     4.3138  4.455 0.073   0.993
+
+R-sq.(adj) =  0.885   Deviance explained = 93.5%
+GCV score = 0.058085  Scale est. = 0.032157  n = 51
+> AIC(gam_combine3)
+[1] -13.18576
+
+
+Spring Data
+GAM-RESULTS
+
+No Autocorrelation:
+Only year as explanatory variable (gam_all0)
+Family: gaussian 
+Link function: identity 
+
+Formula:
+MDperKMsqSpring_mean ~ s(year)
+
+Parametric coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  1.88191    0.05781   32.56   <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+          edf Ref.df     F p-value    
+s(year) 7.769  8.611 19.88  <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.455   Deviance explained = 47.5%
+GCV score = 0.71228  Scale est. = 0.68166   n = 204
+
+AIC: 511.3249
+
+
+One Smoother for all macrounits (gam_all1)
+Family: gaussian 
+Link function: identity 
+
+Formula:
+MDperKMsqSpring_mean ~ s(year) + factor(macrounit)
+
+Parametric coefficients:
+                     Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           1.13731    0.08258  13.772  < 2e-16 ***
+factor(macrounit)0-2  0.97445    0.11679   8.344 1.40e-14 ***
+factor(macrounit)0-3  0.47759    0.11679   4.089 6.36e-05 ***
+factor(macrounit)0-4  1.52637    0.11679  13.069  < 2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+          edf Ref.df     F p-value    
+s(year) 8.417  8.905 38.43  <2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.722   Deviance explained = 73.7%
+GCV score = 0.37036  Scale est. = 0.34782   n = 204
+
+AIC: 377.5093
+
+
+- All intercepts of factor levels are significantly different to 0  (T-test=value compared to its se)
+- Smooth term itself is highly significant as well with df=8.4
+- The further north, the higher the intercept
+
+
+Separate smoothers per macrounit (interaction smoother*factor level) (gam_all2)
+Family: gaussian 
+Link function: identity 
+
+Formula:
+MDperKMsqSpring_mean ~ s(year, by = macrounit) + macrounit
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.13731    0.06438  17.666  < 2e-16 ***
+macrounit0-2  0.97445    0.09104  10.703  < 2e-16 ***
+macrounit0-3  0.47759    0.09104   5.246 4.58e-07 ***
+macrounit0-4  1.52637    0.09104  16.765  < 2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+Approximate significance of smooth terms:
+                       edf Ref.df      F  p-value    
+s(year):macrounit0-1 8.084  8.775  6.287 1.34e-07 ***
+s(year):macrounit0-2 6.319  7.472 12.501 5.52e-14 ***
+s(year):macrounit0-3 6.644  7.770 15.014  < 2e-16 ***
+s(year):macrounit0-4 8.649  8.964 49.373  < 2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+R-sq.(adj) =  0.831   Deviance explained = 85.8%
+GCV score = 0.25319  Scale est. = 0.21136   n = 204
+
+AIC: 294.4396
+
+
+
+- DDeviation in intercepts from macrounit=1 shows a different pattern, no N-S
+GAM.CHECK:
+- Variance Homogeneity  not really given?? both plots to the right
+- Histogram skewed
+==> Better than fall data but not good
+
+GLM-Results
+No Autocorrelation:
+Year and macrounit as predictor:
+Call:
+glm(formula = MDperKMsqSpring_mean ~ year + macrounit, family = gaussian, 
+    data = AllMeans)
+
+Deviance Residuals: 
+     Min        1Q    Median        3Q       Max  
+-1.55254  -0.42789  -0.02776   0.34242   3.11127  
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -88.728886   6.514973 -13.619  < 2e-16 ***
+year           0.045227   0.003278  13.795  < 2e-16 ***
+macrounit0-2   0.905380   0.136492   6.633 3.03e-10 ***
+macrounit0-3   0.509761   0.136492   3.735 0.000245 ***
+macrounit0-4   1.526366   0.136492  11.183  < 2e-16 ***
+---
+Signif. codes:  0 ?***? 0.001 ?**? 0.01 ?*? 0.05 ?.? 0.1 ? ? 1
+
+(Dispersion parameter for gaussian family taken to be 0.4750688)
+
+    Null deviance: 248.508  on 203  degrees of freedom
+Residual deviance:  94.539  on 199  degrees of freedom
+AIC: 434.03
+
+Number of Fisher Scoring iterations: 2
+- AIC higher than the one of GAM
+- But cannot account for the shape of the data, esp. break in last 20 years
+
+- Tried quadratic term: nonsense, fewer significant predictors, lower AIC
