@@ -115,9 +115,14 @@ gam.check(gam_coyote)
 
 ###Effect of Woody Vegetation on each macrounit
 
+
 gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
 gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(WoodyVeg_mean, by=macrounit, bs="cs") + macrounit, data=AllMeans)
 gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit, bs="cs") + s(WoodyVeg_mean, bs="cs") + macrounit, data=AllMeans)
+
+#correlation issues in some of the MUs,so:
+gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(WoodyVeg_mean, bs="cs"), data=AllMeans)
+gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(WoodyVeg_mean, by=macrounit, bs="cs") + macrounit, data=AllMeans)
 
 gam_woodyvegpred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit, WoodyVeg_meann=AllMeans$WoodyVeg_mean)
 gam_woodyvegpred <- cbind(gam_woodyvegpred, predict(gam_woodyveg, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit, "WoodyVeg_mean"=AllMeans$WoodyVeg_mean), type="response"))
@@ -125,7 +130,7 @@ macrounitplots(glmobject = gam_woodyvegpred,xcol="WoodyVeg_mean",title="gam_wood
 macrounitplots(glmobject = gam_woodyvegpred,title="gam_woodyveg fall - effect of Woody Vegetation",colour="red")
 summary(gam_woodyveg)
 AIC(gam_woodyveg)
-
+plot(gam_woodyveg)
 gam_woodyvegres <- residuals(gam_woodyveg, type = "deviance")
 plot(gam_woodyvegres ~AllMeans$year[which(!is.na(AllMeans$MDperKMsqFall_mean))]) #
 acf(gam_woodyvegres, na.action = na.pass,main = "Auto-correlation plot for residuals Woody Vegetation")
@@ -135,7 +140,8 @@ gam.check(gam_woodyveg)
 ##### All explanatory variables, Whole Area Means (equivalent to gam_all3)
 gam_combine <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean, bs="cs") + s(WellDen_mean, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
 gam_combine <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(WellDen_mean, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
-
+# without s(year) due to woodyveg correlation issues
+gam_combine <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean, bs="cs") + s(WellDen_mean, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
 
 #gam_combinepred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit, CoyoteDen_meann=AllMeans$CoyoteDen_mean)
 #gam_combinepred <- cbind(gam_combinepred, predict(gam_combine, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit, "CoyoteDen_mean"=AllMeans$CoyoteDen_mean), type="response"))
