@@ -16,11 +16,17 @@ AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKM
 names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "MDperKMsqFall_mean",  "AvrgWinterMinTemp", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean", "MaleFall_mean", "FemaleFall_mean", "FawnFall_mean")
 
 #add t+1/t+2 timelags to AllMeans to find out wether explanatory variables have a lagged effect
-AllMeans <- cbind(AllMeans, "MDperKMsqFall_mean_t+1"= c(AllMeans$MDperKMsqFall_mean[-1],NA), "MDperKMsqFall_mean_t+2"= c(AllMeans$MDperKMsqFall_mean[-c(1,2)],NA,NA))
+AllMeans <- cbind(AllMeans, "MDperKMsqFall_mean_tplus1"= c(AllMeans$MDperKMsqFall_mean[-1],NA), "MDperKMsqFall_mean_tplus2"= c(AllMeans$MDperKMsqFall_mean[-c(1,2)],NA,NA))
 
-#calculate reproduction rate
-AllMeans <- cbind(AllMeans, "RepRateFall_mean" = (AllMeans$FawnFall_mean/(AllMeans$FemaleFall_mean+AllMeans$MaleFall_mean)))
+#calculate fawn:total number ratio
+AllMeans <- cbind(AllMeans, "FawnTotalRatio_mean" = (AllMeans$FawnFall_mean/(AllMeans$FemaleFall_mean+AllMeans$MaleFall_mean)))
+AllMeans <- cbind(AllMeans, "FawnTotalRatio_mean_tminus1" = c(NA, AllMeans$FawnTotalRatio_mean[-length(AllMeans$FawnTotalRatio_mean)]))
 
+
+# calculate reproduction rate per individual
+AllMeans <- cbind(AllMeans, "RepRateFall_mean" = ((AllMeans$MDperKMsqFall_mean_tplus1) - (AllMeans$MDperKMsqFall_mean))/AllMeans$MDperKMsqFall_mean)
+AllMeans <- cbind(AllMeans, "RepRateFall_mean_tminus1" = c(NA, AllMeans$RepRateFall_mean[-length(AllMeans$RepRateFall_mean)]))
+                                    
 
 #recalculate densities to sq km²
 AllMeans$CoyoteDen_mean <- AllMeans$CoyoteDen_mean / 100 
@@ -35,9 +41,11 @@ names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "MDperKMsqFall_mean", 
 
 
 # for Gita
-write.csv(AllMeans, "AllMeans.csv")
+#write.csv(AllMeans, "AllMeans.csv")
 
-
+remove(allmules)
+remove(mules1962)
+remove(del)
 
 
 

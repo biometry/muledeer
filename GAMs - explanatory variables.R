@@ -6,7 +6,7 @@ count_nas(AllMeans$AvrgWinterMinTemp)#0, ok
 count_nas(AllMeans$FawnFall_mean)#7
 count_nas(AllMeans$FemaleFall_mean)#7
 count_nas(AllMeans$MaleFall_mean)#7
-count_nas(AllMeans$RepRateFall_mean)#7
+count_nas(AllMeans$FawnTotalRatioFall_mean)#7
 
 
 ####Check for outliers of data that is added for this step
@@ -21,8 +21,30 @@ par(oma=c(2,0,2,0))
 pairs(z, lower.panel = panel.smooth2, upper.panel = panel.cor, diag.panel = panel.hist) #not too informative
 title("Pairwise Pearson Correlation", outer=TRUE)
 
+sink("cormatrices.txt", type="output")
 cormatrix <- cor(z, use="pairwise.complete.obs") # no correlation >(-)0.4 so ok
-write(cormatrix, "correlation matrix predictors.txt", sep="\t")
+cormatrix1 <- cor(z[which(AllMeans$macrounit == "0-1"),], use="pairwise.complete.obs") # no correlation >(-)0.4 so ok
+cormatrix2 <- cor(z[which(AllMeans$macrounit == "0-2"),], use="pairwise.complete.obs") # no correlation >(-)0.4 so ok
+cormatrix3 <- cor(z[which(AllMeans$macrounit == "0-3"),], use="pairwise.complete.obs") # no correlation >(-)0.4 so ok
+cormatrix4 <- cor(z[which(AllMeans$macrounit == "0-4"),], use="pairwise.complete.obs") # no correlation >(-)0.4 so ok
+print("Correlation Matrix All Macrounits")
+print(cormatrix)
+print("Correlation Matrix Macrounit 1")
+print(cormatrix1)
+print("Correlation Matrix Macrounit 2")
+print(cormatrix2)
+print("Correlation Matrix Macrounit 3")
+print(cormatrix3)
+print("Correlation Matrix Macrounit 4")
+print(cormatrix4)
+sink(NULL)
+
+pairs(z, lower.panel = panel.smooth, diag.panel = panel.hist, upper.panel = panel.cor, main = "Collinearity Analysis Whole Area")
+pairs(z[which(AllMeans$macrounit == "0-1"),], lower.panel = panel.smooth, diag.panel = panel.hist, upper.panel = panel.cor, main = "Collinearity Analysis Macrounit 1")
+pairs(z[which(AllMeans$macrounit == "0-2"),], lower.panel = panel.smooth, diag.panel = panel.hist, upper.panel = panel.cor, main = "Collinearity Analysis Macrounit 2")
+pairs(z[which(AllMeans$macrounit == "0-3"),], lower.panel = panel.smooth, diag.panel = panel.hist, upper.panel = panel.cor, main = "Collinearity Analysis Macrounit 3")
+pairs(z[which(AllMeans$macrounit == "0-4"),], lower.panel = panel.smooth, diag.panel = panel.hist, upper.panel = panel.cor, main = "Collinearity Analysis Macrounit 4")
+
 vif <- corvif(z)# all values <10, so ok
 
 
