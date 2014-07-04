@@ -39,16 +39,16 @@ extract <- function(data, columns=NULL, fun = NULL, xvar, listvar){
 
 ###-------- One plot per macrounit displaying gam-object
 
-macrounitplots <- function(glmobject, ycol="MDperKMsqFall_mean", xcol="year", title, colour){
+macrounitplots <- function(glmobject, ycol="MDperKMsqFall_mean", xcol="year",title, colour="red", shape="l"){
   par(mfrow=c(2,2),oma=c(2,0,2,0))
   macrounits <- levels(glmobject[,"macrounit"])
   for (i in 1:length(macrounits)){
     cond = which(glmobject[,"macrounit"]==macrounits[i])  
-    plot(AllMeans[cond,ycol]~AllMeans[cond,xcol], type="p", main=macrounits[i], xlab=xcol, ylab="Density per km²")
+    plot(AllMeans[cond,ycol]~AllMeans[cond,xcol], type="p", main=macrounits[i], xlab=xcol, ylab=ycol)
     
-    lines(x=AllMeans[cond,xcol], glmobject[cond,"fit"], col=colour)
-    lines(x=AllMeans[cond,xcol], glmobject[cond,"fit"]  + 2 * glmobject[cond,"se.fit"], col=colour, lty=2)
-    lines(x=AllMeans[cond,xcol], glmobject[cond,"fit"]  - 2 * glmobject[cond,"se.fit"], col=colour, lty=2)
+    lines(x=AllMeans[cond,xcol], glmobject[cond,"fit"], col=colour, type=shape)
+    #lines(x=AllMeans[cond,xcol], glmobject[cond,"fit"]  + 2 * glmobject[cond,"se.fit"], col=colour, lty=2, type=shape)
+    #lines(x=AllMeans[cond,xcol], glmobject[cond,"fit"]  - 2 * glmobject[cond,"se.fit"], col=colour, lty=2, type=shape)
   }
   title(as.character(title), outer=TRUE)
 }
@@ -57,6 +57,7 @@ macrounitplots <- function(glmobject, ycol="MDperKMsqFall_mean", xcol="year", ti
 #yrange <- c(min(AllMeans[,ycol], na.rm=TRUE),max(AllMeans[,ycol],na.rm=TRUE)) 
 #ylim=yrange
 #for better comparability between macrounits(not always helpful)
+
 
 ### functions for pairs()
 panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)

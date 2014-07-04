@@ -195,3 +195,49 @@ gam_combine3res <- residuals(gam_combine3, type = "deviance")
 acf(gam_combine3res, na.action = na.pass,main = "Auto-correlation plot for residuals Coyote Density")
 
 gam.check(gam_combine)
+
+
+###include Interactions
+
+gam_coyoteoil <- gam(MDperKMsqFall_mean ~ te(CoyoteDen_mean,WellDen_mean,bs="cs"), data=AllMeans)
+gam_coyoteoil <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(CoyoteDen_mean,WellDen_mean,bs="cs"), data=AllMeans)
+gam_coyoteoil <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(CoyoteDen_mean,WellDen_mean,bs="cs", by=macrounit) + macrounit, data=AllMeans)
+summary(gam_coyoteoil)
+AIC(gam_coyoteoil)
+plot(gam_coyoteoil)
+
+gam_coyotetemp <- gam(MDperKMsqFall_mean ~ te(CoyoteDen_mean,AvrgWinterMinTemp,bs="cs"), data=AllMeans)
+gam_coyotetemp <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(CoyoteDen_mean,AvrgWinterMinTemp,bs="cs"), data=AllMeans)
+gam_coyotetemp <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(CoyoteDen_mean,AvrgWinterMinTemp,bs="cs", by=macrounit) + macrounit, data=AllMeans)
+summary(gam_coyotetemp)
+AIC(gam_coyotetemp)
+plot(gam_coyotetemp)
+
+gam_coyotehunt <- gam(MDperKMsqFall_mean ~ te(CoyoteDen_mean,HuntDen_All_mean,bs="cs"), data=AllMeans)
+gam_coyotehunt <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(CoyoteDen_mean,HuntDen_All_mean,bs="cs"), data=AllMeans)
+gam_coyotehunt <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(CoyoteDen_mean,HuntDen_All_mean,bs="cs", by=macrounit) + macrounit, data=AllMeans)
+summary(gam_coyotehunt)
+AIC(gam_coyotehunt)
+plot(gam_coyotehunt)
+
+gam_huntoil <- gam(MDperKMsqFall_mean ~ te(HuntDen_All_mean,WellDen_mean,bs="cs"), data=AllMeans)
+gam_huntoil <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(HuntDen_All_mean,WellDen_mean,bs="cs"), data=AllMeans)
+gam_huntoil <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(HuntDen_All_mean,WellDen_mean,bs="cs", by=macrounit) + macrounit, data=AllMeans)
+summary(gam_huntoil)
+AIC(gam_huntoil)
+plot(gam_huntoil)
+
+gam_hunttemp <- gam(MDperKMsqFall_mean ~ te(HuntDen_All_mean,AvrgWinterMinTemp,bs="cs"), data=AllMeans)
+gam_hunttemp <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(HuntDen_All_mean,AvrgWinterMinTemp,bs="cs"), data=AllMeans)
+gam_hunttemp <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(HuntDen_All_mean,AvrgWinterMinTemp,bs="cs", by=macrounit) + macrounit, data=AllMeans)
+summary(gam_hunttemp)
+AIC(gam_hunttemp)
+plot(gam_hunttemp)
+
+gam_oiltemp <- gam(MDperKMsqFall_mean ~ te(WellDen_mean,AvrgWinterMinTemp,bs="cs"), data=AllMeans)
+gam_oiltemp <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(WellDen_mean,AvrgWinterMinTemp,bs="cs"), data=AllMeans)
+gam_oiltemp <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(WellDen_mean,AvrgWinterMinTemp,bs="cs", by=macrounit) + macrounit, data=AllMeans)
+summary(gam_oiltemp)
+AIC(gam_oiltemp)
+plot(gam_oiltemp)
+
