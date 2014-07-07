@@ -1,3 +1,4 @@
+library(stats)
 ###------GAMs of fall MD population density including explanatory variables, no autocorrelation
 
 
@@ -205,6 +206,7 @@ gam_coyoteoil <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(CoyoteDen_mean,W
 summary(gam_coyoteoil)
 AIC(gam_coyoteoil)
 plot(gam_coyoteoil)
+gam.check(gam_coyoteoil)
 
 gam_coyotetemp <- gam(MDperKMsqFall_mean ~ te(CoyoteDen_mean,AvrgWinterMinTemp,bs="cs"), data=AllMeans)
 gam_coyotetemp <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + te(CoyoteDen_mean,AvrgWinterMinTemp,bs="cs"), data=AllMeans)
