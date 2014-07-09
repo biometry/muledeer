@@ -11,19 +11,33 @@ plot(AllMeans$FawnFemaleRatio_mean~AllMeans$year, cex=0.5, main="GAM Fawn Female
 lines(gam_temppred$fit[1:51]~AllMeans$year[1:51],type="l", col="red", )
 
 
-# Winter Mortality: Effects of Hunt and Temp
+# Winter Mortality: Effects of Hunt and Temp_tplus1 (tplus1 because data refers to the previous winter)
+par(mfrow=c(1,2))
+plot(AllMeans$RatioSprAut_mean~AllMeans$year) # 2 outliers but removing them doesnt change a lot (see "leftover code.R")
+
 plot(AllMeans$WinterMort_mean~AllMeans$year) # 2 outliers but removing them doesnt change a lot (see "leftover code.R")
 plot(AllMeans$WinterMort_mean~AllMeans$HuntDen_All_mean, log="y")
 plot(AllMeans$WinterMort_mean~AllMeans$AvrgWinterMinTemp, log="y")
 # both dont show a trend -> probably no significant effect
 
-gam_temp <- gam(WinterMort_mean ~ s(AvrgWinterMinTemp,  bs="cs"), data=AllMeans)#NO EFFECT
+gam_temp <- gam(WinterMort_mean ~ s(AvrgWinterMinTemp_tplus1,  bs="cs"), data=AllMeans)#NO EFFECT
 gam_hunt <- gam(WinterMort_mean ~ s(HuntDen_All_mean,  bs="cs"), data=AllMeans)#NO EFFECT
+gam_hunttemp <- gam(WinterMort_mean ~ te(AvrgWinterMinTemp_tplus1, HuntDen_All_mean,  bs="cs"), data=AllMeans)
 plot(gam_hunt)
 summary(gam_temp)
 summary(gam_hunt)
-plot(gam_hunt)
+summary(gam_hunttemp)
+plot(gam_temp)
 AIC(gam_temp)
+
+# glm?
+hist(AllMeans$WinterMort_mean)
+glm_hunttemp <- glm(WinterMort_mean ~ AvrgWinterMinTemp_tplus1*HuntDen_All_mean, family=gaussian,data=AllMeans)#NO EFFECT
+
+#seperate macrounits
+glm_hunttemp <- glm(WinterMort_mean ~ AvrgWinterMinTemp_tplus1*HuntDen_All_mean, family=gaussian,data=AllMeans[which(AllMeans$macrounit == "0-2"),])#NO EFFECT
+
+summary(glm_hunttemp)
 
 
 # Relationship Spring+Fall Data
@@ -52,16 +66,15 @@ plot(WholeAreaMeans$HuntDen_All_mean~WholeAreaMeans$year, type="l",lwd=1, main =
 lines(WholeAreaMeans$HuntDen_Aless_mean~WholeAreaMeans$year, col="red")#lots of NAs in raw data
 legend("topleft", legend=c("Total", "Antlerless"), col=c(1, "red"), lty=1)
 
-# total_harvest.MDgunHarvest.
-# 
-# antlerless <- mules1962$Antleress_Harvest.MDgunHarvest.
-# all <- mules1962$total_harvest.MDgunHarvest.
-# mu <- mules1962
-# year <- 
-# xyplot(Antleress_Harvest.MDgunHarvest.|macrounit,data=mules1962)
-# lines(WholeAreaMeans$HuntDen_Aless_mean~WholeAreaMeans$year, col="red")#lots of NAs in raw data
-# legend("topleft", legend=c("Total", "Antlerless"), col=c(1, "red"), lty=1)
-# 
-# #cor(WholeAreaMeans$HuntDen_All_mean,WholeAreaMeans$HuntDen_Aless_mean,use="pairwise.complete.obs")# 0.95
-# #cor(AllMeans$FawnFemaleRatio_mean,AllMeans$HuntDen_Aless_mean_tplus1,use="pairwise.complete.obs") #-0.05
-#cor(AllMeans$RepRateFall_mean,AllMeans$HuntDen_Aless_mean_tplus1, use="pairwise.complete.obs") # -0.11
+# GAMS using gamma-distribution
+
+hist(AllMeans$MDperKMsqFall_mean)
+gam_all2g <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit, bs="cs") + macrounit, data=AllMeans, family=Gamma)
+gam_all2gpred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit)
+gam_all2gpred <- cbind(gam_all2gpred, predict(gam_all2g, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit), type="response"))
+macrounitplots(glmobject = gam_all2gpred,title="GAM2g fall - interaction",colour="red")
+summary(gam_all2g)
+AIC(gam_all2g)
+par(oma=c(2,0,2,0))
+gam.check(gam_all2g)
+title("gam_all2g fall residual check", outer=TRUE)

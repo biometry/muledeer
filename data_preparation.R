@@ -27,10 +27,18 @@ AllMeans <- cbind(AllMeans,MDperKMsqSpring_mean_tplus1)
 AllMeans <- cbind(AllMeans,HuntDen_All_mean_tplus1=c(NA, AllMeans$HuntDen_All_mean[-length(AllMeans$HuntDen_All_mean)]))
 AllMeans <- cbind(AllMeans,HuntDen_Aless_mean_tplus1=c(NA, AllMeans$HuntDen_Aless_mean[-length(AllMeans$HuntDen_Aless_mean)]))
 
+# timelag AvrgminTemp
+AllMeans <- cbind(AllMeans,AvrgWinterMinTemp_tplus1=c(NA, AllMeans$AvrgWinterMinTemp[-length(AllMeans$AvrgWinterMinTemp)]))
+
 
 # Calculate Winter mortality
-WinterMort_mean <- MDperKMsqSpring_mean_tplus1/AllMeans$MDperKMsqFall_mean
+WinterMort_mean <- MDperKMsqSpring_mean_tplus1 - AllMeans$MDperKMsqFall_mean
 AllMeans <- cbind(AllMeans,WinterMort_mean)
+
+# Ratio Spring - previous Autumn
+RatioSprAut_mean <- MDperKMsqSpring_mean_tplus1 / AllMeans$MDperKMsqFall_mean
+AllMeans <- cbind(AllMeans,RatioSprAut_mean)
+
 
 #calculate fawn:total number ratio
 AllMeans <- cbind(AllMeans, "FawnTotalRatio_mean" = (AllMeans$FawnFall_mean/(AllMeans$FemaleFall_mean+AllMeans$MaleFall_mean)))
@@ -44,6 +52,7 @@ AllMeans <- cbind(AllMeans, FawnFemaleRatio_mean)
 AllMeans <- cbind(AllMeans, "RepRateFall_mean" = ((AllMeans$MDperKMsqFall_mean_tplus1) - (AllMeans$MDperKMsqFall_mean))/AllMeans$MDperKMsqFall_mean)
 AllMeans <- cbind(AllMeans, "RepRateFall_mean_tminus1" = c(NA, AllMeans$RepRateFall_mean[-length(AllMeans$RepRateFall_mean)]))
                                     
+
 
 #recalculate densities to sq km²
 AllMeans$CoyoteDen_mean <- AllMeans$CoyoteDen_mean / 100 
