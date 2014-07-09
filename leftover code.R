@@ -1,3 +1,18 @@
+
+
+### Check GAMs for Winter Mortality without outliers (09.07)
+plot(AllMeans$WinterMort_mean~AllMeans$year) # 2 outliers
+outlier <- which.max(AllMeans$WinterMort_mean)
+outlier <- c(outlier, which.max(AllMeans$WinterMort_mean[-outlier]))#117,24
+AllMeans2 <- AllMeans
+AllMeans2$WinterMort_mean[outlier] <- NA
+plot(AllMeans2$WinterMort_mean~AllMeans2$year)
+gam_temp <- gam(WinterMort_mean ~ s(AvrgWinterMinTemp,  bs="cs"), data=AllMeans2)#slightly better
+gam_hunt <- gam(WinterMort_mean ~ s(HuntDen_All_mean,  bs="cs"), data=AllMeans2)#not better
+summary(gam_hunt)
+
+
+
 ###leftovers for plotting, not used because replaced by functions
 
 

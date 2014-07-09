@@ -12,16 +12,33 @@ del <- which(mules1962$StudyArea == "Bible_Camp" | mules1962$StudyArea == "NUTRN
 mules1962 <- mules1962[-del,]
 
 #Data Extraction and Modification
-AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall", "Average_of_Minimum_temperature_11_4", "d3","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage", "MaleFall", "FemaleFall", "FawnFall"), listvar=c("macrounit","year"))
-names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "MDperKMsqFall_mean",  "AvrgWinterMinTemp", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean", "MaleFall_mean", "FemaleFall_mean", "FawnFall_mean")
+AllMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall", "Average_of_Minimum_temperature_11_4", "d3","d2", "fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage", "MaleFall", "FemaleFall", "FawnFall"), listvar=c("macrounit","year"))
+names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "MDperKMsqFall_mean",  "AvrgWinterMinTemp", "HuntDen_All_mean", "HuntDen_Aless_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean", "MaleFall_mean", "FemaleFall_mean", "FawnFall_mean")
 
 #add t+1/t+2 timelags to AllMeans to find out wether explanatory variables have a lagged effect
 AllMeans <- cbind(AllMeans, "MDperKMsqFall_mean_tplus1"= c(AllMeans$MDperKMsqFall_mean[-1],NA), "MDperKMsqFall_mean_tplus2"= c(AllMeans$MDperKMsqFall_mean[-c(1,2)],NA,NA))
+
+#add timelags to Spring Population Density
+
+MDperKMsqSpring_mean_tplus1 <- c(NA, AllMeans$MDperKMsqSpring_mean[-length(AllMeans$MDperKMsqSpring_mean)])
+AllMeans <- cbind(AllMeans,MDperKMsqSpring_mean_tplus1)
+
+# timelags hunting
+AllMeans <- cbind(AllMeans,HuntDen_All_mean_tplus1=c(NA, AllMeans$HuntDen_All_mean[-length(AllMeans$HuntDen_All_mean)]))
+AllMeans <- cbind(AllMeans,HuntDen_Aless_mean_tplus1=c(NA, AllMeans$HuntDen_Aless_mean[-length(AllMeans$HuntDen_Aless_mean)]))
+
+
+# Calculate Winter mortality
+WinterMort_mean <- MDperKMsqSpring_mean_tplus1/AllMeans$MDperKMsqFall_mean
+AllMeans <- cbind(AllMeans,WinterMort_mean)
 
 #calculate fawn:total number ratio
 AllMeans <- cbind(AllMeans, "FawnTotalRatio_mean" = (AllMeans$FawnFall_mean/(AllMeans$FemaleFall_mean+AllMeans$MaleFall_mean)))
 AllMeans <- cbind(AllMeans, "FawnTotalRatio_mean_tminus1" = c(NA, AllMeans$FawnTotalRatio_mean[-length(AllMeans$FawnTotalRatio_mean)]))
 
+# calculate Fawn:Female ratio
+FawnFemaleRatio_mean = (AllMeans$FawnFall_mean/AllMeans$FemaleFall_mean)
+AllMeans <- cbind(AllMeans, FawnFemaleRatio_mean)
 
 # calculate reproduction rate per individual
 AllMeans <- cbind(AllMeans, "RepRateFall_mean" = ((AllMeans$MDperKMsqFall_mean_tplus1) - (AllMeans$MDperKMsqFall_mean))/AllMeans$MDperKMsqFall_mean)
@@ -35,17 +52,18 @@ AllMeans$WellDen_mean <- AllMeans$WellDen_mean / 10
 
 
 ###WHOLEAREAMEANS: Means for whole area
-WholeAreaMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall", "Average_of_Minimum_temperature_11_4", "d3","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage", "MaleFall", "FemaleFall", "FawnFall"), listvar=c("year"))
+WholeAreaMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall", "Average_of_Minimum_temperature_11_4", "d3", "d2","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage", "MaleFall", "FemaleFall", "FawnFall"), listvar=c("year"))
 WholeAreaMeans <- WholeAreaMeans[,-1]
-names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "MDperKMsqFall_mean",  "AvrgWinterMinTemp", "HuntDen_All_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean", "MaleFall_mean", "FemaleFall_mean", "FawnFall_mean")
+names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "MDperKMsqFall_mean",  "AvrgWinterMinTemp", "HuntDen_All_mean", "HuntDen_Aless_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean", "MaleFall_mean", "FemaleFall_mean", "FawnFall_mean")
 
 
 # for Gita
 #write.csv(AllMeans, "AllMeans.csv")
 
 remove(allmules)
-remove(mules1962)
+
 remove(del)
-
-
+remove(FawnFemaleRatio_mean)
+remove(WinterMort_mean)
+remove(MDperKMsqSpring_mean_tplus1)
 
