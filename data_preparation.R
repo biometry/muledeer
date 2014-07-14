@@ -18,6 +18,9 @@ names(AllMeans) <- c("year", "macrounit","MDperKMsqSpring_mean", "MDperKMsqFall_
 #add t+1/t+2 timelags to AllMeans to find out wether explanatory variables have a lagged effect
 AllMeans <- cbind(AllMeans, "MDperKMsqFall_mean_tplus1"= c(AllMeans$MDperKMsqFall_mean[-1],NA), "MDperKMsqFall_mean_tplus2"= c(AllMeans$MDperKMsqFall_mean[-c(1,2)],NA,NA))
 
+
+
+
 #add timelags to Spring Population Density
 
 MDperKMsqSpring_mean_tplus1 <- c(NA, AllMeans$MDperKMsqSpring_mean[-length(AllMeans$MDperKMsqSpring_mean)])
