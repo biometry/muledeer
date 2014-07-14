@@ -1,5 +1,8 @@
 library(lattice)
-# effect of WinterTemp on Fawn Female Ratio as in Simones model?
+# recalculate population densities
+
+
+# effect of WinterTemp on Fawn Female Ratio same as in Simones model?
 
 gam_temp <- gam(FawnFemaleRatio_mean ~ s(AvrgWinterMinTemp, bs="cs"), data=AllMeans)
 gam_temp <- gam(FawnFemaleRatio_mean ~ s(year, bs="cs") +s(AvrgWinterMinTemp, bs="cs"), data=AllMeans)

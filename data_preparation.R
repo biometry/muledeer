@@ -67,7 +67,8 @@ names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "MDperKMsqFall_mean", 
 
 
 # for Gita
-#write.csv(AllMeans, "AllMeans.csv")
+write.csv(AllMeans, "AllMeans.csv")
+write.csv(WholeAreaMeans, "WholeAreaMeans.csv")
 
 remove(allmules)
 
@@ -75,4 +76,5 @@ remove(del)
 remove(FawnFemaleRatio_mean)
 remove(WinterMort_mean)
 remove(MDperKMsqSpring_mean_tplus1)
+remove(RatioSprAut_mean)
 
