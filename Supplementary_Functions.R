@@ -47,6 +47,7 @@ macrounitplots <- function(glmobject, ycol="MDperKMsqFall_mean", xcol="year",tit
     plot(AllMeans[cond,ycol]~AllMeans[cond,xcol], type="p", main=macrounits[i], xlab=xcol, ylab=ycol)
     
     lines(x=AllMeans[cond,xcol], glmobject[cond,"fit"], col=colour, type=shape)
+
     #lines(x=AllMeans[cond,xcol], glmobject[cond,"fit"]  + 2 * glmobject[cond,"se.fit"], col=colour, lty=2, type=shape)
     #lines(x=AllMeans[cond,xcol], glmobject[cond,"fit"]  - 2 * glmobject[cond,"se.fit"], col=colour, lty=2, type=shape)
   }
@@ -59,7 +60,7 @@ macrounitplots <- function(glmobject, ycol="MDperKMsqFall_mean", xcol="year",tit
 #for better comparability between macrounits(not always helpful)
 
 
-### functions for pairs()
+### ------------------ functions for pairs()
 panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
 {
   usr <- par("usr"); on.exit(par(usr))
@@ -80,3 +81,5 @@ panel.hist <- function(x, ...)
   y <- h$counts; y <- y/max(y)
   rect(breaks[-nB], 0, breaks[-1], y, col = "cyan", ...)
 }
+
+

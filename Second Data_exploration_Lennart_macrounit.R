@@ -1,5 +1,35 @@
 library(lattice)
-# recalculate population densities
+
+#recalculate population densities (see "Summary_Data.doc")
+sup <- mules1962[c("year","StudyArea", "macrounit", "AreaSqKm_true_fall", "TotalMDFall")]
+count_nas(sup$TotalMDFall) #350 NAs
+length(which(sup$AreaSqKm_true_fall == 0)) #350 so goes along with NAs in popcounts = correct
+sup_pop <- tapply(X=sup$TotalMDFall, INDEX = list(sup$year,sup$macrounit), FUN=sum, na.rm = T) #no of individuals in all surveyed studysites within each macrounit
+sup_area <- tapply(X=sup$AreaSqKm_true_fall, INDEX = list(sup$year,sup$macrounit), FUN=sum, na.rm = T) # area of SURVEYED studysites in that year
+sup <- sup_pop/sup_area
+sup <- melt(sup)
+count_nas(sup)#7
+count_nas(AllMeans$MDperKMsqFall_mean)#7 so ok
+AllMeans <- cbind(AllMeans, MDperKMsqFall_newmean = sup[,3])
+
+plot(AllMeans$MDperKMsqFall_mean~AllMeans$MDperKMsqFall_newmean,cex=0.5, main="Difference in Density Calculation Methods")
+lines(abs(AllMeans$MDperKMsqFall_mean-AllMeans$MDperKMsqFall_newmean)~ AllMeans$MDperKMsqFall_newmean, col="red", type="h")
+legend("topleft", legend=c("Values", "Sum of Deviance"), col=c(1, "red"), lty=1)
+cor(AllMeans$MDperKMsqFall_mean,AllMeans$MDperKMsqFall_newmean, use="pairwise.complete.obs")#0.9903044
+xyplot(MDperKMsqFall_mean +MDperKMsqFall_newmean ~ year | macrounit, data=AllMeans, type="l", auto.key=TRUE)
+#-> No need to modify densities in all models as difference not that great
+
+#compare GAMs only to verify:
+gam_all2 <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit, bs="cs") + macrounit, data=AllMeans)
+summary(gam_all2)
+gam_all2_newmean <- gam(MDperKMsqFall_newmean ~ s(year, by=macrounit, bs="cs") + macrounit, data=AllMeans)
+summary(gam_all2_newmean)
+par(oma=c(2,0,2,0))
+gam.check(gam_all2)
+gam.check(gam_all2_newmean)
+title("Gam_all2_newmean fall residual check", outer=TRUE)
+# same
+
 
 
 # effect of WinterTemp on Fawn Female Ratio same as in Simones model?
@@ -12,7 +42,7 @@ AIC(gam_temp) #YES
 gam_temppred<-predict(gam_temp, se.fit=T, newdata=data.frame(year=AllMeans$year, AvrgWinterMinTemp=AllMeans$AvrgWinterMinTemp), type="response")
 plot(AllMeans$FawnFemaleRatio_mean~AllMeans$year, cex=0.5, main="GAM Fawn Female Ratio ~ Year and Winter Temp")
 lines(gam_temppred$fit[1:51]~AllMeans$year[1:51],type="l", col="red", )
-
+#NO
 
 # Winter Mortality: Effects of Hunt and Temp_tplus1 (tplus1 because data refers to the previous winter)
 par(mfrow=c(1,2))
@@ -39,8 +69,7 @@ glm_hunttemp <- glm(WinterMort_mean ~ AvrgWinterMinTemp_tplus1*HuntDen_All_mean,
 
 #seperate macrounits
 glm_hunttemp <- glm(WinterMort_mean ~ AvrgWinterMinTemp_tplus1*HuntDen_All_mean, family=gaussian,data=AllMeans[which(AllMeans$macrounit == "0-2"),])#NO EFFECT
-
-summary(glm_hunttemp)
+summary(glm_hunttemp)#NO EFFECT
 
 
 # Relationship Spring+Fall Data

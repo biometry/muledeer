@@ -33,9 +33,9 @@ summary(NAs_spring)
 
 # NAs in reduced data set:
 NAs_fall <- tapply(X=mules1962$TotalMDFall, INDEX=list(mules1962$year), FUN=count_nas)
-summary(NAs_fall)
+sum(NAs_fall)
 NAs_spring <- tapply(X=mules1962$NumbMDSpring, INDEX=list(mules1962$year), FUN=count_nas)
-summary(NAs_spring)
+sum(NAs_spring)
 
 
 # Whole population time series --------------------------------------------
