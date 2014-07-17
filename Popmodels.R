@@ -85,14 +85,54 @@ lines(result_mss, col="blue")
 legend("topleft", legend=c("MAF", "MSS"), col=c("red", "blue"), lty=1)
 
 
+### Discrete logistic model for each macrounit = on AllMeans
+Popdata <- data.frame(MDperKMsqFall_mean=AllMeans$MDperKMsqFall_mean, year=AllMeans$year, macrounit=AllMeans$macrounit)#remove NAs
+Popdata <- Popdata[which(complete.cases(Popdata)==TRUE),]
+
+par(mfrow=c(2,4),oma=c(2,0,2,0))
+macrounits <- levels(Popdata$macrounit)
+result_out <- list()
+rd_out <- list()
+parinfo <- data.frame("0-1" = numeric(3), "0-2" = numeric(3), "0-3" = numeric(3), "0-4" = numeric(3), row.names=c("rd", "K", "MSS"))
+
+
+for (i in 1:length(macrounits)){
+  cond = which(Popdata$macrounit==macrounits[i])  
+  
+  N_0 <- Popdata$MDperKMsqFall_mean[cond[1]]
+  tsteps <- length(Popdata$MDperKMsqFall_mean[cond])
+  opt <- optim(par= c(rd=0.3, K=2), fn=mss, suppar=c(N_0, tsteps), data=Popdata$MDperKMsqFall_mean[cond])
+  result <- log_d(c(opt$par[1], opt$par[2]),c(N0=N_0,  steps=tsteps))
+  names(result) <- Popdata$year[cond]
+  result_out <- append(result_out, list(c(result))) 
+  names(result) <- Popdata$year[cond]
+  rd <- c(NA, (result[-1]/result[-tsteps]))
+  rd_out <- append(rd_out, list(c(rd)))
+  parinfo[,i] <- c(opt$par, opt$value)
+  
+  
+  plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], cex=0.5, main=macrounits[i], xlab="Year",ylab="Population Density")
+  lines(result~Popdata$year[cond], col="red")
+  plot(rd~result, type="l", lty=2, main=macrounits[i], xlab="Predicted Population Density",ylab="Predicted Reproduction rate")
+  remove(result)
+  remove(rd)
+}
+title("Basic Discrete Logistic Model - Population Densities and Reproduction Rates", outer=TRUE)       
+parinfo  
+
+
+
+
 ### ----------------- Discrete logistic Theta-Model
 
+N_0 <- WholeAreaMeans$MDperKMsqFall_mean[1]
+tsteps <- length(WholeAreaMeans$MDperKMsqFall_mean)
 
 log_td <- function(par, suppar){
-  output <- numeric(suppar[2])
-  output[1] <- suppar[1]
+  output <- numeric(suppar[2])#steps
+  output[1] <- suppar[1]#n0
   for (t in 1:(length(output)-1)){
-    output[t+1] <- output[t]+output[t]*par[1]*(1-((output[t]/par[2])^par[3]))
+    output[t+1] <- output[t]+(output[t]*par[1]*(1-((output[t]/par[2])^par[3])))
   }
   return(output)
 }
@@ -105,7 +145,7 @@ maf <- function(par, data, suppar){
 
 mss <- function(par, data, suppar){
   model <- log_td(par, suppar)
-  error <- sum((abs(model-data))^2)
+  error <- sum((abs(model-data))^2, na.rm=TRUE)/length(data)
   return (error)
 }
 
@@ -129,26 +169,42 @@ plot(rd_mss~result_mss[-1], type="l")#correct: non-linear but cubix
 cor(rd_mss,result_mss)#-0.99534
 
 
+
+
+
+
 ## Discrete logistic theta-model for each macrounit = on AllMeans
-par(mfrow=c(2,2),oma=c(2,0,2,0))
-macrounits <- levels(AllMeans$macrounit)
-result <- data.frame(numeric(51),numeric(51),numeric(51),numeric(51))
-rd <- data.frame(numeric(51),numeric(51),numeric(51),numeric(51))
-parinfo <- data.frame(numeric(3), numeric(3), numeric(3), numeric(3))
+Popdata <- data.frame(MDperKMsqFall_mean=AllMeans$MDperKMsqFall_mean, year=AllMeans$year, macrounit=AllMeans$macrounit)#remove NAs
+Popdata <- Popdata[which(complete.cases(Popdata)==TRUE),]
+
+par(mfrow=c(2,4),oma=c(2,0,2,0))
+macrounits <- levels(Popdata$macrounit)
+result_out <- list()
+rd_out <- list()
+parinfo <- data.frame("0-1" = numeric(4), "0-2" = numeric(4), "0-3" = numeric(4), "0-4" = numeric(4), row.names=c("rd", "K", "theta", "MSS"))
+
+
 for (i in 1:length(macrounits)){
-  N0 <- AllMeans$MDperKMsqFall_mean[cond[1]]
-  tsteps <- length(AllMeans$MDperKMsqFall_mean[cond])
-  cond = which(AllMeans$macrounit==macrounits[i])  
-  opt <- optim(par= c(rd=0.5, K=4, theta = 0.1), fn=mss, suppar=c(N0, tsteps), data=AllMeans$MDperKMsqFall_mean[cond])
-  result[,i] <- log_td(c(opt$par[1], opt$par[2], opt$par[3]),c(N0=N_0,  steps=tsteps)) 
-  rd[,i] <- c((result[-1,i]/result[-51,i]),NA)
-
-  plot(AllMeans$MDperKMsqFall_mean[cond]~AllMeans$year[cond], cex=0.5, main=macrounits[i], xlab="Year",ylab="Population Density")
-  lines(result[,i]~AllMeans$year[cond], col="red")
-#   plot(rd[,i]~result[,i], type="l")
-   parinfo[,i] <- c(opt$par)
+  cond = which(Popdata$macrounit==macrounits[i])  
+  
+  N_0 <- Popdata$MDperKMsqFall_mean[cond[1]]
+  tsteps <- length(Popdata$MDperKMsqFall_mean[cond])
+  opt <- optim(par= c(rd=0.3, K=2, theta = 1), fn=maf, suppar=c(N_0, tsteps), data=Popdata$MDperKMsqFall_mean[cond])
+  result <- log_td(c(opt$par[1], opt$par[2], opt$par[3]),c(N0=N_0,  steps=tsteps))
+  names(result) <- Popdata$year[cond]
+  result_out <- append(result_out, list(c(result))) 
+  names(result) <- Popdata$year[cond]
+  rd <- c(NA, (result[-1]/result[-tsteps]))
+  rd_out <- append(rd_out, list(c(rd)))
+  parinfo[,i] <- c(opt$par, opt$value)
+  
+  
+  plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], cex=0.5, main=macrounits[i], xlab="Year",ylab="Population Density")
+  lines(result~Popdata$year[cond], col="red")
+  plot(rd~result, type="l", lty=2, main=macrounits[i], xlab="Predicted Population Density",ylab="Predicted Reproduction rate")
+  remove(result)
+  remove(rd)
 }
-title("Theta-Model - Population Densities", outer=TRUE)       
+title("Discrete Logistic Theta-Model - Population Densities and Reproduction Rates", outer=TRUE)       
 parinfo  
-
 
