@@ -1,5 +1,7 @@
 ### GAMs applied on netto-reproduction-rate, including explanatory variables one by one
 
+library(mgcv)
+
 sink("GAM_results_RepRate.txt", type=c("output","message"))
 ###effect of population density (=Density-Dependence)
 gam_dens <- gam(RepRateFall_mean ~ s(MDperKMsqFall_mean, bs="cs") , data=AllMeans) 
