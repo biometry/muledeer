@@ -193,7 +193,7 @@ for (i in 1:length(macrounits)){
   
   N_0 <- Popdata$MDperKMsqFall_mean[cond[1]]
   tsteps <- length(Popdata$MDperKMsqFall_mean[cond])
-  opt <- optim(par= c(rd=0.3, K=2, theta = 1), fn=mss, method="L-BFGS-B", lower=c(0, 0 , 0), suppar=c(N_0, tsteps), data=Popdata$MDperKMsqFall_mean[cond])
+  opt <- optim(par= c(rd=0.3, K=2, theta = 1), fn=maf, method="L-BFGS-B", lower=c(0, 0 , 0), suppar=c(N_0, tsteps), data=Popdata$MDperKMsqFall_mean[cond])
   result <- log_td(c(opt$par[1], opt$par[2], opt$par[3]),c(N0=N_0,  steps=tsteps))
   names(result) <- Popdata$year[cond]
   result_out <- append(result_out, list(c(result))) 
@@ -218,13 +218,14 @@ par(mfrow=c(2,2))
 for (i in 1:length(macrounits)){
   cond = which(Popdata$macrounit==macrounits[i])  
   plot(Popdata$RepRateFall_mean[cond]~Popdata$MDperKMsqFall_mean[cond], main=macrounits[i], type="p",cex=0.5,xlab="Observed Population Density",ylab="Observed and Predicted Reproduction rate")
-  lines(rd_out[[i]]~result_out[[i]], type="l", lty=2, col="red")
+  curve ((parinfo[1,i]*(1-(x/parinfo[2,i])^parinfo[3,i])), from=min(Popdata$MDperKMsqFall_mean[cond]), to=max(Popdata$MDperKMsqFall_mean[cond]), n=1000, col="red", add=TRUE)
+  #lines(rd_out[[i]]~result_out[[i]], type="l", lty=2, col="red")
 }
 legend("topright", legend=c("Observed", "Predicted"), col=c("black", "red"), lty=c(1,2))
-title("Observed and Predicted Density Dependences", outer=TRUE)       
+title("Observed and Predicted Density Dependences Theta Model MAF", outer=TRUE)       
 
 #recalculation using nls
-nls <- nls(RepRateFall_mean[cond] ~ rd*MDperKMsqFall_mean[cond]*((1-MDperKMsqFall_mean[cond]/K)^theta), data=Popdata, lower=c(0,0,0), start=c(rd=8, K=2, theta = 0.1))
+nls <- nls(RepRateFall_mean[cond] ~ rd*MDperKMsqFall_mean[cond]*((1-MDperKMsqFall_mean[cond]/K)^theta), data=Popdata, lower=c(0,0,0), start=c(rd=8.66, K=1.49, theta = 0.023))
 #error "missing values or infitiy produced when evaluating model"
 #NAs?
 count_nas(Popdata$MDperKMsqFall_mean)#0

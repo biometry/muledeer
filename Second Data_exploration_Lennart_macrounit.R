@@ -74,7 +74,14 @@ summary(glm_hunttemp)#NO EFFECT
 
 # Relationship Spring+Fall Data
 cor(AllMeans$MDperKMsqSpring_mean, AllMeans$MDperKMsqFall_mean, use="pairwise.complete.obs")#0.71
-cor(Spring_tplus1, AllMeans$MDperKMsqFall_mean, use="pairwise.complete.obs")#0.64 -> does not make sense
+cor(Spring_tplus1, AllMeans$MDperKMsqFall_mean, use="pairwise.complete.obs")#0.64 -> does not make sense as less effects during winter (?)
+
+plot(AllMeans$MDperKMsqSpring_mean_tplus1~ AllMeans$MDperKMsqFall_mean, main="Spring Population vs. Previous Fall Population", cex=0.7, ylab="Population Density Spring(t+1)", xlab="Population Density Fall(t)")
+lines(1*unique(AllMeans$MDperKMsqFall_mean)~ unique(AllMeans$MDperKMsqFall_mean), type="l", col="red")
+legend("topleft", legend=c("PopDen Spring(t+1)", "PopDen Fall(t)"), col=c("black", "red"), lty=1,2)
+
+# at least as many datapoints above line than below --> bias in spring observations as less leaf cover?
+# logical would be: lower values of spring population due to winter mortality+hunt as only factors betweens spring (t+1) and fall 
 
 cor(AllMeans$FawnFemaleRatio_mean, AllMeans$MDperKMsqSpring_mean_tplus1,use="pairwise.complete.obs")#-0.4
 

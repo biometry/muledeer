@@ -7,12 +7,12 @@ log_tdh <- function(par, suppar){
   return(output)
 }
 
-a <- N_0
+a <- Popdata$MDperKMsqFall_mean[1]
 b <- a+a*2.00813824*(1-((a/1.71814299)^0.03431441))-Popdata$HuntDen_All_mean[1]
 c <- b+b*2.00813824*(1-((b/1.71814299)^0.03431441))-Popdata$HuntDen_All_mean[2]#produces NA
 # 
-# (b/1.71814299) = -0.1030193
-# -0.1030193^0.03431441=-0.9249726
+(b/1.71814299)# = -0.1030193
+(-0.1030193)^0.03431441#=-0.9249726
 # but it does not work with b --> ??
 
 plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], type="l")
