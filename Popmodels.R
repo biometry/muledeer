@@ -105,7 +105,7 @@ for (i in 1:length(macrounits)){
   
   N_0 <- Popdata$MDperKMsqFall_mean[cond[1]]
   tsteps <- length(Popdata$MDperKMsqFall_mean[cond])
-  opt <- optim(par= c(rd=0.3, K=2), fn=mss, method="L-BFGS-B", lower=c(0 , 0), suppar=c(N_0, tsteps), data=Popdata$MDperKMsqFall_mean[cond])
+  opt <- optim(par= c(rd=0.3, K=2), fn=maf, method="L-BFGS-B", lower=c(0 , 0), suppar=c(N_0, tsteps), data=Popdata$MDperKMsqFall_mean[cond])
   result <- log_d(c(opt$par[1], opt$par[2]),c(N0=N_0,  steps=tsteps))
   names(result) <- Popdata$year[cond]
   result_out <- append(result_out, list(c(result))) 
@@ -121,7 +121,7 @@ for (i in 1:length(macrounits)){
   remove(result)
   remove(rd)
 }
-title("Basic Discrete Logistic Model - Population Densities and Reproduction Rates (MSS)", outer=TRUE)       
+title("Basic Discrete Logistic Model - Population Densities and Reproduction Rates (MAF)", outer=TRUE)       
 parinfo  
 
 
