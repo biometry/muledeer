@@ -5,12 +5,27 @@ library(mgcv)
 sink("GAM_results_RepRate.txt", type=c("output","message"))
 ###effect of population density (=Density-Dependence)
 gam_dens <- gam(RepRateFall_mean ~ s(MDperKMsqFall_mean, bs="cs") , data=AllMeans) 
-gam_dens <- gam(RepRateFall_mean ~ s(MDperKMsqFall_mean, by=macrounit, bs="cs") , data=AllMeans) 
+gam_dens <- gam(RepRateFall_mean ~ s(MDperKMsqFall_mean, by=macrounit, bs="cs") + macrounit, data=AllMeans) 
 
 gam_denspred <- data.frame(MDperKMsqFall_mean=AllMeans$MDperKMsqFall_mean, macrounit=AllMeans$macrounit)
-gam_denspred <- order(gam_denspred)
+
 gam_denspred <- cbind(gam_denspred, predict(gam_dens, se.fit=T, newdata=data.frame("MDperKMsqFall_mean"=AllMeans$MDperKMsqFall_mean, "macrounit"=AllMeans$macrounit), type="response"))
-macrounitplots(glmobject = gam_denspred,title="gam_dens fall - Relationship Population Density -- Reproduction Rate",xcol="MDperKMsqFall_mean", ycol= "RepRateFall_mean", colour="red", shape="l")
+
+# in order to display lines dataframe needs to be sorted
+macrounits <- levels(AllMeans$macrounit)
+par(mfrow=c(2,2))
+for (i in 1:length(macrounits)){
+  cond = which(AllMeans$macrounit==macrounits[i])  
+  ord <- order(gam_denspred[cond,1])
+  print(ord)
+  ord2 <- ord + cond[1] - 1
+  print(ord2)
+  d <- gam_denspred[ord2,]  
+  plot(AllMeans$RepRateFall_mean[cond]~AllMeans$MDperKMsqFall_mean[cond], main=macrounits[i], type="p",cex=0.5,xlab="Observed Population Density",ylab="Observed Reproduction rate")
+  lines(d$fit~d$MDperKMsqFall_mean, lwd=1.2, col="red")
+}
+legend("topright", legend=c("Observed", "GAM"), col=c("black", "red"), lty=c(1,1))
+title("Observed and Predicted Density Dependences GAM", outer=TRUE)     
 
 summary(gam_dens)
 AIC(gam_dens)

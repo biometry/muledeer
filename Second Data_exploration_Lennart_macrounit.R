@@ -31,6 +31,9 @@ title("Gam_all2_newmean fall residual check", outer=TRUE)
 # same
 
 
+# plot PopDen Reprate(t-1) and (Fawn:Female Ratio)
+
+
 
 # effect of WinterTemp on Fawn Female Ratio same as in Simones model?
 

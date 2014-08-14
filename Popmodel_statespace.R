@@ -7,12 +7,6 @@ library(rjags)
 
 # 5.2 A simple model ----------------------------------------
 
-# ich habe schon versucht, die Startwerte und priors zu erweitern/verkleinern
-# in der rjags-manual (auch auf github) auf seite 6 steht etwas zu den "nodes"
-# nämlich, dass jeder prior eine "node" wäre. Die Fehlermeldungen kommen jedoch 
-# auch z.B. bei node[13], und es gibt ja keine 13 priors
-
-
 
 # Specify the model in JAGS:
 sink("model_ss.jags")
@@ -85,35 +79,43 @@ res_quant <- as.data.frame(summ$quantiles)
 N.est_mean <- res_means[which(rownames(res_means) == "N.est[1]"):(which(rownames(res_means) == "N.est[1]")+tsteps-1),] # plus tstep-1 in order to keep flexible for different lengths of data sets due to NAs
 y_mean <- res_means[which(rownames(res_means) == "y[1]"):(which(rownames(res_means) == "y[1]")+tsteps-1),]
 rd_mean <- res_means[which(rownames(res_means) == "rd[1]"):(which(rownames(res_means) == "rd[1]")+tsteps-2),]
+rd_calc <- c((N.est_mean[-1,1]-N.est_mean[-tsteps,1])/N.est_mean[-tsteps,1],NA) #(N(t+1)-N(t))/N(t)
 rmax_mean <- res_means[which(rownames(res_means) == "rmax[1]"):(which(rownames(res_means) == "rmax[1]")+tsteps-2),]
 K_mean <- res_means[which(rownames(res_means) == "K"),]
 sigmas_mean <- res_means[c(which(rownames(res_means) == "sigma2.obs"), which(rownames(res_means) == "sigma2.proc")),]
+
 
 N.est_quant <- res_quant[which(rownames(res_quant) == "N.est[1]"):(which(rownames(res_means) == "N.est[1]")+tsteps-1),]
 
 
 
-# Make a nice graph with data and model result_sss:
+# Make a nice graph with data and model result:
 
 plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], cex=0.5,  ylim= c(0, max(Popdata$MDperKMsqFall_mean[cond])), ylab = "Population density", xlab = "Year", las = 1, col = "black", type = "p", main=macrounits[i])
-polygon(x = c(Popdata$year[cond], rev(Popdata$year[cond])), y = c(N.est_quant[,5], rev(N.est_quant[,5])), col = "gray90", border = "gray90")
-lines (y_mean[,1]~Popdata$year[cond], col="black", lwd=2)
+polygon(x = c(Popdata$year[cond], rev(Popdata$year[cond])), y = c(N.est_quant[,5], rev(N.est_quant[,1])), col = "gray90", border = "gray90")
+
+lines (y_mean[,1]~Popdata$year[cond], col="black", lwd=1)
 lines (N.est_mean[,1]~Popdata$year[cond], col="red", lwd=2)
-lines (N.est_mean[,1]+2*N.est_mean[,2]~Popdata$year[cond], col="red", lty=2)
-lines (N.est_mean[,1]-2*N.est_mean[,2]~Popdata$year[cond], col="red", lty=2)
-legend("topleft", legend = c("Observed", "Estimated", "sd Estimated", "95% CRI"), lty = c(1, 1, 2, 1), lwd = c(2, 2, 1, 2), col = c("black", "red", "red", "grey"), bty = "n", cex = 1)
+legend("topleft", legend = c("Observed", "Estimated", "95% Quantile Estimated"), lty = c(1, 1, 1), lwd = c(1,1,1), col = c("black", "red", "grey"), bty = "n", cex = 1)
 
-rd_mean_sd1 <- c(rd_mean[,1]+2*rd_mean[,2],NA)
-rd_mean_sd2 <- c(rd_mean[,1]-2*rd_mean[,2],NA)
-m1 <- min(c(rd_mean_sd1,rd_mean_sd2), na.rm=TRUE)
-m2 <- max(c(rd_mean_sd1,rd_mean_sd2), na.rm=TRUE)
-plot(c(rd_mean[,1],NA)~N.est_mean[,1], type="l", lty=1, ylim=c(m1,m2), xlab="Mean of Predicted Population Density", ylab="Mean of Predicted rd", main=macrounits[i]) #logical that shape is not linear because mean of rd is based on different estimates of rmax in each knot
-lines (rd_mean_sd1~N.est_mean[,1], col="black", lty=2)
-lines (rd_mean_sd2~N.est_mean[,1], col="black", lty=2)
+# display sd of estimate
+#polygon(x = c(Popdata$year[cond], rev(Popdata$year[cond])), y = c((N.est_mean[,1]+2*N.est_mean[,2]), rev(N.est_mean[,1]-2*N.est_mean[,2])), col = "gray90", border = "gray90")
+#lines (N.est_mean[,1]+2*N.est_mean[,2]~Popdata$year[cond], col="red", lty=2)
+#lines (N.est_mean[,1]-2*N.est_mean[,2]~Popdata$year[cond], col="red", lty=2)
+#legend("topleft", legend = c("Observed", "Estimated", "sd Estimated", "95% CRI"), lty = c(1, 1, 2, 1), lwd = c(2, 2, 1, 2), col = c("black", "red", "red", "grey"), bty = "n", cex = 1)
 
+
+# rd_mean_sd1 <- c(rd_mean[,1]+2*rd_mean[,2],NA)
+# rd_mean_sd2 <- c(rd_mean[,1]-2*rd_mean[,2],NA)
+# m1 <- min(c(rd_mean_sd1,rd_mean_sd2), na.rm=TRUE)
+# m2 <- max(c(rd_mean_sd1,rd_mean_sd2), na.rm=TRUE)
+# plot(c(rd_mean[,1],NA)~N.est_mean[,1], type="l", lty=1, ylim=c(m1,m2), xlab="Mean of Predicted Population Density", ylab="Mean of Predicted rd", main=macrounits[i]) #logical that shape is not linear because mean of rd is based on different estimates of rmax in each knot
+# lines (rd_mean_sd1~N.est_mean[,1], col="black", lty=2)
+# lines (rd_mean_sd2~N.est_mean[,1], col="black", lty=2)
+# lines (rd_calc~N.est_mean[,1], col="red")
 parinfo[,i] <- c(mean(rmax_mean[,1]), K_mean[,1], sigmas_mean[,1])
 }
-title("Discrete State Space Logistic Model - Population Densities and Reproduction Rates", outer=TRUE)       
+title("Discrete State Space Logistic Model - Population Densities", outer=TRUE)       
 parinfo  
 
 # #exclude 2 outliers of rmax
