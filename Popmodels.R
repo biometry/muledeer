@@ -232,29 +232,36 @@ count_nas(Popdata$MDperKMsqFall_mean)#0
 count_nas(Popdata$RepRateFall_mean)#0
 
 
-### -----------Including Harvest in Discrete logistic theta-model for each macrounit = on AllMeans
+# +++ Popmodels including harvest-----------
+
+# Including Harvest in basic logistic model for each macrounit = on AllMeans-----
+
+
 Popdata <- data.frame(MDperKMsqFall_mean=AllMeans$MDperKMsqFall_mean, year=AllMeans$year, macrounit=AllMeans$macrounit, HuntDen_All_mean=AllMeans$HuntDen_All_mean)#remove NAs
 Popdata <- Popdata[which(complete.cases(Popdata)==TRUE),]
 ##huntdenAll no NAs
 
-log_tdh <- function(par, suppar){
+log_dh <- function(par, suppar){
   output <- numeric(suppar[2])#steps
   output[1] <- suppar[1]#n0
   for (t in 1:(length(output)-1)){
-    output[t+1] <- output[t]+(output[t]*par[1]*(1-((output[t]/par[2])^par[3])))-(suppar[t+2]/2)#from suppar 3 on: harvest data
+    output[t+1] <- output[t]+(output[t]*par[1]*(1-(output[t]/par[2])))-(par[3]*suppar[t+2])
+    #from suppar 3 on: harvest data, weight term is fitted to avoid negative values if HuntDen<PopDen  
   }
   return(output)
 }
 
-maf_tdh <- function(par, data, suppar){
-  model <- log_tdh(par, suppar)
+maf_dh <- function(par, data, suppar){
+  model <- log_dh(par, suppar)
   error <- mean(abs(model-data))
+  if (length(which(model < 0)) != 0){error <- length(which(model < 0))}# penalty: the more negative values, the worse MSS
   return (error)
 }
 
-mss_tdh <- function(par, data, suppar){
-  model <- log_tdh(par, suppar)
+mss_dh <- function(par, data, suppar){
+  model <- log_dh(par, suppar)
   error <- sum((abs(model-data))^2, na.rm=TRUE)/length(data)
+  if (length(which(model < 0)) != 0){error <- length(which(model < 0))}# penalty: the more negative values, the worse MSS
   return (error)
 }
 
@@ -263,7 +270,7 @@ par(mfrow=c(2,4),oma=c(2,0,2,0))
 macrounits <- levels(Popdata$macrounit)
 result_out <- list()
 rd_out <- list()
-parinfo <- data.frame("0-1" = numeric(4), "0-2" = numeric(4), "0-3" = numeric(4), "0-4" = numeric(4), row.names=c("rd", "K", "theta", "MSS"))
+parinfo <- data.frame("0-1" = numeric(4), "0-2" = numeric(4), "0-3" = numeric(4), "0-4" = numeric(4), row.names=c("rd", "K", "weight of harvest density", "MSS"))
 
 
 for (i in 1:length(macrounits)){
@@ -271,8 +278,8 @@ for (i in 1:length(macrounits)){
   
   N_0 <- Popdata$MDperKMsqFall_mean[cond[1]]
   tsteps <- length(Popdata$MDperKMsqFall_mean[cond])
-  opt <- optim(par= c(rd=0.3, K=2, theta = 1), fn=mss, method="L-BFGS-B", lower=c(NA,0 , 0), suppar=c(N_0, tsteps, Popdata$HuntDen_All_mean[cond]), data=Popdata$MDperKMsqFall_mean[cond])
-  result <- log_tdh(par=c(opt$par[1], opt$par[2], opt$par[3]),suppar=c(N0=N_0,  steps=tsteps,  Popdata$HuntDen_All_mean[cond]))
+  opt <- optim(par= c(rd=0.3, K=2, weight=0.1), fn=mss_dh, method="L-BFGS-B", lower=c(0, 0 , 0, 0), suppar=c(N_0, tsteps, Popdata$HuntDen_All_mean[cond]), data=Popdata$MDperKMsqFall_mean[cond])
+  result <- log_dh(par=c(opt$par[1], opt$par[2], opt$par[3]),suppar=c(N0=N_0,  steps=tsteps,  Popdata$HuntDen_All_mean[cond]))
   names(result) <- Popdata$year[cond]
   result_out <- append(result_out, list(c(result))) 
   names(result) <- Popdata$year[cond]
@@ -290,4 +297,69 @@ for (i in 1:length(macrounits)){
 title("Discrete Logistic Theta-Model including Harvest- Population Densities and Reproduction Rates (MAF)", outer=TRUE)       
 parinfo  
 
-result_out
+
+
+
+
+# Including Harvest in Discrete logistic theta-model for each macrounit = on AllMeans-----
+
+
+Popdata <- data.frame(MDperKMsqFall_mean=AllMeans$MDperKMsqFall_mean, year=AllMeans$year, macrounit=AllMeans$macrounit, HuntDen_All_mean=AllMeans$HuntDen_All_mean)#remove NAs
+Popdata <- Popdata[which(complete.cases(Popdata)==TRUE),]
+##huntdenAll no NAs
+
+log_tdh <- function(par, suppar){
+  output <- numeric(suppar[2])#steps
+  output[1] <- suppar[1]#n0
+  for (t in 1:(length(output)-1)){
+    output[t+1] <- output[t]+(output[t]*par[1]*(1-((output[t]/par[2])^par[3])))-(par[4]*suppar[t+2])
+    #from suppar 3 on: harvest data, weight term is fitted to avoid negative values if HuntDen<PopDen  
+  }
+  return(output)
+}
+
+maf_tdh <- function(par, data, suppar){
+  model <- log_tdh(par, suppar)
+  error <- mean(abs(model-data))
+  if (length(which(model < 0)) != 0){error <- length(which(model < 0))}# penalty: the more negative values, the worse MSS
+  return (error)
+}
+
+mss_tdh <- function(par, data, suppar){
+  model <- log_tdh(par, suppar)
+  error <- sum((abs(model-data))^2, na.rm=TRUE)/length(data)
+  if (length(which(model < 0)) != 0){error <- length(which(model < 0))}# penalty: the more negative values, the worse MSS
+  return (error)
+}
+
+
+par(mfrow=c(2,4),oma=c(2,0,2,0))
+macrounits <- levels(Popdata$macrounit)
+result_out <- list()
+rd_out <- list()
+parinfo <- data.frame("0-1" = numeric(5), "0-2" = numeric(5), "0-3" = numeric(5), "0-4" = numeric(5), row.names=c("rd", "K", "theta", "weight of harvest density", "MSS"))
+
+
+for (i in 1:length(macrounits)){
+  cond = which(Popdata$macrounit==macrounits[i])  
+  
+  N_0 <- Popdata$MDperKMsqFall_mean[cond[1]]
+  tsteps <- length(Popdata$MDperKMsqFall_mean[cond])
+  opt <- optim(par= c(rd=0.3, K=2, theta = 1, weight=0.1), fn=mss_tdh, method="L-BFGS-B", lower=c(0, 0 , 0, 0), suppar=c(N_0, tsteps, Popdata$HuntDen_All_mean[cond]), data=Popdata$MDperKMsqFall_mean[cond])
+  result <- log_tdh(par=c(opt$par[1], opt$par[2], opt$par[3], opt$par[4]),suppar=c(N0=N_0,  steps=tsteps,  Popdata$HuntDen_All_mean[cond]))
+  names(result) <- Popdata$year[cond]
+  result_out <- append(result_out, list(c(result))) 
+  names(result) <- Popdata$year[cond]
+  rd <- c(((result[-1]-result[-tsteps])/result[-tsteps]),NA)
+  rd_out <- append(rd_out, list(c(rd)))
+  parinfo[,i] <- c(opt$par, opt$value)
+  
+  
+  plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], cex=0.5, main=macrounits[i], xlab="Year",ylab="Population Density")
+  lines(result~Popdata$year[cond], col="red")
+  plot(rd~result, type="l", lty=2, main=macrounits[i], xlab="Predicted Population Density",ylab="Predicted Reproduction rate")
+  remove(result)
+  remove(rd)
+}
+title("Discrete Logistic Theta-Model including Harvest- Population Densities and Reproduction Rates (MAF)", outer=TRUE)       
+parinfo  

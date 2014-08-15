@@ -92,7 +92,9 @@ title("Gam_all3 fall residual check", outer=TRUE)
 # gam_all3_corres <- residuals(gam_all3_cor$gam, type = "deviance")
 # plot(gam_all3_corres ~WholeAreaMeans$year[which(!is.na(WholeAreaMeans$MDperKMsqFall_mean))]) #pattern not too bad?
 # acf(gam_all3_corres, na.action = na.pass,main = "Auto-correlation plot for residuals gam_all3_cor fall")
+
 # ##-> Autocorrelation gets a lot stronger (!!!!??)
+
 # par(oma=c(2,0,2,0))
 # gam.check(gam_all3_cor$gam)
 # title("Gam_all3cor fall residual check", outer=TRUE)
@@ -118,6 +120,9 @@ AIC(gam_all2c$lme)
 #comparison nullmodell gam_all0 and gam_all2c
 anova(gam_all0, gam_all2c$gam, test="F")
 
+gam_all2cres <- residuals(gam_all2c$gam, type = "deviance")
+acf(gam_all2cres, na.action = na.pass,main = "Auto-correlation plot for residuals gam_all2c fall")
+# -> AC gets stronger if included in formula??
 
 # 
 # gamm:
