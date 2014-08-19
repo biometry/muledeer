@@ -93,6 +93,7 @@ names(WoodyVeg_mean_m) <- c("year", "macrounit", "WoodyVeg_mean")
 WoodyVeg_mean_m <- (WoodyVeg_mean_m)
 
 xyplot(MDperKMsqFall_mean + FawnTotalRatio_mean_tminus1 + RepRateFall_mean_tminus1 ~ year | macrounit, data=AllMeans, type = "l", auto.key = list(space = "top", text = c("Population Density", "Fawn:Total Population Ratio (t-1)", "Reproduction Rate (t-1)"), points = FALSE, lines = TRUE), xlab = "Year", ylab= "Density per km?", main = "Fall population Density vs. Fawn Ratio/Reproduction Rate")
+xyplot(MDperKMsqFall_mean + HuntDen_All_mean ~ year | macrounit, data=AllMeans, type = "l", auto.key = list(space = "top", text = c("Population Density", "Fawn:Total Population Ratio (t-1)", "Reproduction Rate (t-1)"), points = FALSE, lines = TRUE), xlab = "Year", ylab= "Density per km?", main = "Fall population Density vs. Fawn Ratio/Reproduction Rate")
 
 
 xyplot(PopDenSpring_mean + HuntDenAll_mean ~ year | macrounit, data=c(PopDenSpring_mean_m, HuntDenAll_mean_m), subscripts=TRUE, panel=function(...) panel.superpose(panel.groups=MyPanel, ...), type="l", auto.key = list(space = "top", text = c("Population Density", "Hunting Density")), xlab = "Year", ylab= "Density per km?", main = "Mean Spring Population Density and Mean Harvesting Density")

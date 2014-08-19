@@ -30,6 +30,9 @@ gam.check(gam_all2_newmean)
 title("Gam_all2_newmean fall residual check", outer=TRUE)
 # same
 
+#calculate geometric mean of r:
+geom <- prod(Popdata$RepRateFall_mean)^(1/length(Popdata$RepRateFall_mean))
+mean(Popdata$RepRateFall_mean)
 
 # plot PopDen Reprate(t-1) and (Fawn:Female Ratio)
 
