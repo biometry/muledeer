@@ -1,7 +1,5 @@
 ###-------------Discrete logistic model
 
-N_0 <- WholeAreaMeans$MDperKMsqFall_mean[1]
-tsteps <- length(WholeAreaMeans$MDperKMsqFall_mean)
 
 log_d <- function(par, suppar){
   output <- numeric(suppar[2])
@@ -31,16 +29,17 @@ Popdata <- data.frame(MDperKMsqFall_mean=AllMeans$MDperKMsqFall_mean, year=AllMe
 Popdata <- Popdata[which(complete.cases(Popdata)==TRUE),]
 
 
-parinfolist <- list()
-for (i in 1:50){
 
-#png("Basic1_MSS.png", width=2200, height=1500)
+
+
+
+png("Basic1_MSS.png", width=2200, height=1500)
 par(mfrow=c(2,2),oma=c(10,10,10,10),mar=c(10, 10, 10, 10))
 macrounits <- levels(Popdata$macrounit)
 result_out <- list()
 rd_out <- list()
 parinfo <- data.frame("0-1" = numeric(3), "0-2" = numeric(3), "0-3" = numeric(3), "0-4" = numeric(3), row.names=c("rd", "K", "MSS"))
-
+ylimmax <- c(3.5,3.5,3.5,6.5)
 
 for (i in 1:length(macrounits)){
   cond = which(Popdata$macrounit==macrounits[i])  
@@ -57,22 +56,24 @@ for (i in 1:length(macrounits)){
   parinfo[,i] <- c(opt$par, opt$value)
   
   
-  #plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], xlab="",ylab="", cex.axis=2.5, cex.main = 3, main=macrounits[i])
-  #lines(result~Popdata$year[cond], col="red")
+  plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], xlab="",ylab="", cex.axis=2.5, cex.main = 3, main=macrounits[i], type="l", ylim=c(0,ylimmax[i]))
+  lines(result~Popdata$year[cond], col="red",lwd=2)
   #plot(rd~result, type="l", lty=2, main=macrounits[i], xlab="Predicted Population Density",ylab="Predicted Reproduction rate")
   remove(result)
   remove(rd)
 }
-#mtext("Year", 1, 1, outer=TRUE, cex=3)
-#mtext("Population Density", 2, 1, outer=TRUE, las=0, cex=3)
-#mtext("Basic1", 3, 1, outer=TRUE, cex=3.5)
-#parinfo  
-#dev.off()
-parinfolist <- append(parinfolist, as.list(parinfo))
-}
-w <- which(names(parinfolist) == "X0.4")
-parinfolist[w]
-hist(parinfolist[[which(names(parinfolist) == "X0.4")]])
+mtext("Year", 1, 1, outer=TRUE, cex=3)
+mtext("Population Density", 2, 1, outer=TRUE, las=0, cex=3)
+mtext("Basic1", 3, 1, outer=TRUE, cex=3.5)
+#print(parinfo)  
+dev.off()
+
+
+# parinfolist <- append(parinfolist, as.list(parinfo))
+# }
+# w <- which(names(parinfolist) == "X0.4")
+# parinfolist[w]
+# hist(parinfolist[[which(names(parinfolist) == "X0.4")]])
 
 
 # visualization of density dependence observed vs. modelled
@@ -128,20 +129,20 @@ mss_dh <- function(par, data, suppar){
   return (error)
 }
 
-png("Basic2_MSS_weight0,15.png", width=2200, height=1500)
+png("Basic2_MSS_weight0,1.png", width=2200, height=1500)
 par(mfrow=c(2,2),oma=c(10,10,10,10),mar=c(10, 10, 10, 10))
 macrounits <- levels(Popdata$macrounit)
 result_out <- list()
 rd_out <- list()
 parinfo <- data.frame("0-1" = numeric(4), "0-2" = numeric(4), "0-3" = numeric(4), "0-4" = numeric(4), row.names=c("rd", "K", "weight of harvest density", "MSS"))
-
+ylimmax <- c(3.5,3.5,3.5,6.5)
 
 for (i in 1:length(macrounits)){
   cond = which(Popdata$macrounit==macrounits[i])  
   
   N_0 <- Popdata$MDperKMsqFall_mean[cond[1]]
   tsteps <- length(Popdata$MDperKMsqFall_mean[cond])
-  opt <- optim(par= c(rd=0.3, K=2, weight=0.15), fn=mss_dh, method="L-BFGS-B", lower=c(0, 0 , 0, 0), suppar=c(N_0, tsteps, Popdata$HuntDen_All_mean[cond]), data=Popdata$MDperKMsqFall_mean[cond])
+  opt <- optim(par= c(rd=0.3, K=2, weight=0.1), fn=mss_dh, method="L-BFGS-B", lower=c(0, 0 , 0, 0), suppar=c(N_0, tsteps, Popdata$HuntDen_All_mean[cond]), data=Popdata$MDperKMsqFall_mean[cond])
   result <- log_dh(par=c(opt$par[1], opt$par[2], opt$par[3]),suppar=c(N0=N_0,  steps=tsteps,  Popdata$HuntDen_All_mean[cond]))
   names(result) <- Popdata$year[cond]
   result_out <- append(result_out, list(c(result))) 
@@ -151,8 +152,8 @@ for (i in 1:length(macrounits)){
   parinfo[,i] <- c(opt$par, opt$value)
   
   
-  plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], xlab="",ylab="", cex.axis=2.5, cex.main = 3, main=macrounits[i])
-  lines(result~Popdata$year[cond], col="red")
+  plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], xlab="",ylab="", cex.axis=2.5, cex.main = 3, main=macrounits[i], ylim=c(0,ylimmax[i]), type="l")
+  lines(result~Popdata$year[cond], col="red", lwd=2)
     #plot(rd~result, type="l", lty=2, main=macrounits[i], xlab="Predicted Population Density",ylab="Predicted Reproduction rate")
   remove(result)
   remove(rd)

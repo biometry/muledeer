@@ -43,12 +43,14 @@ sink()
 
 
 
-png("StateSpace2_5_10000iter.png", width=2200, height=1500)
+png("StateSpace2_5_15000_15000iter.png", width=2200, height=1500)
 par(mfrow=c(2,2),oma=c(5,5,5,5),mar=c(10, 10, 10, 10))
-parinfo <- data.frame("0-1" = numeric(6), "0-2" = numeric(6), "0-3" = numeric(6), "0-4" = numeric(6), row.names=c("mean of rmax", "mean of K", "mean of pH","mean of sigma2.obs", "mean of sigma2.proc", "MSS"))
+parinfo <- data.frame("0-1" = numeric(14), "0-2" = numeric(14), "0-3" = numeric(14), "0-4" = numeric(14), row.names=c("mean of rmax","mean of sd.rmax","mean of se.rmax", "mean of K", "sd.K", "se.K", "mean of pH","sd.pH", "se.pH","mean of sigma2.obs", "mean of sigma2.proc", "mean of sd.N.est","mean of se.N.est","MSS"))
 macrounits <- levels(Popdata$macrounit)
+ylimmax <- c(3.5,3.5,3.5,6.5)
 
-#BURN-IN-PHASE
+
+
 for (i in 1:length(macrounits)){
   
   cond = which(Popdata$macrounit==macrounits[i]) 
@@ -63,13 +65,13 @@ for (i in 1:length(macrounits)){
   
   
   # Compile the model and run MCMC for burn-in phase:
-  model_fit <- jags.model(file = "model_ss.jags", data = model.data, inits = inits, n.chains = 3, n.adapt = 5000)
+  model_fit <- jags.model(file = "model_ss.jags", data = model.data, inits = inits, n.chains = 3, n.adapt = 15000)
   
   # Specify parameters whose posterior values are to be saved:
   parameters <- c("rmax","mean.rmax", "rd", "sigma2.obs", "sigma2.proc", "K", "N.est", "y","pH")
   
   # Continue running the MCMC to produce posterior distributions:
-  result_sss <- coda.samples(model = model_fit, variable.names = parameters, n.iter = 10000)
+  result_sss <- coda.samples(model = model_fit, variable.names = parameters, n.iter = 15000)
   
   # plot(result_sss) # Produces many plots: 25 for N.est, 24 for rmax, and one for mean.lambda, sigma2.proc and sigma2.obs, respectively
   # summary(result_sss)
@@ -97,7 +99,7 @@ for (i in 1:length(macrounits)){
   
   # Make a nice graph with data and model result:
   
-  plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], cex=0.5,  ylim= c(0, max(Popdata$MDperKMsqFall_mean[cond])), cex.axis=2.5, cex.main = 3, ylab = "", xlab = "", las = 1, col = "black", type = "p", main=macrounits[i])
+  plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], cex=0.5,  cex.axis=2.5, cex.main = 3, ylab = "", xlab = "", las = 1, col = "black", type = "p", main=macrounits[i], ylim=c(0,ylimmax[i]))
   polygon(x = c(Popdata$year[cond], rev(Popdata$year[cond])), y = c(N.est_quant[,5], rev(N.est_quant[,1])), col = "gray90", border = "gray90")
   
   lines (y_mean[,1]~Popdata$year[cond], col="black", lwd=1)
@@ -119,9 +121,8 @@ for (i in 1:length(macrounits)){
   # lines (rd_mean_sd1~N.est_mean[,1], col="black", lty=2)
   # lines (rd_mean_sd2~N.est_mean[,1], col="black", lty=2)
   # lines (rd_calc~N.est_mean[,1], col="red")
-  parinfo[,i] <- c(mean(rmax_mean[,1]), K_mean[,1], pH_mean[,1], sigmas_mean[,1],MSE)
-}
-mtext("Year", 1, 1, outer=TRUE, cex=3)
+  parinfo[,i] <- c(mean(rmax_mean[,1]), mean(rmax_mean[,2]),mean(rmax_mean[,4]),K_mean[,1],K_mean[,2],K_mean[,4], pH_mean[,1], pH_mean[,2],pH_mean[,4],sigmas_mean[,1], mean(N.est_mean[,2]),mean(N.est_mean[,4]),MSE)
+}#"mean of rmax","mean of sd.rmax","mean of se.rmax", "mean of K", "sd.K", "se.K", "mean of pH","sd.pH", "se.pH","mean of sigma2.obs", "mean of sigma2.proc", "mean of sd.N.est","mean of se.N.est","MSS"
 mtext("Population Density", 2, 1, outer=TRUE, las=0, cex=3)
 mtext("StateSpace2", 3, 1, outer=TRUE, cex=3.5)       
 parinfo  

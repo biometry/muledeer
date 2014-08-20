@@ -42,11 +42,11 @@ sink()
 
 
 
-png("StateSpace1.png", width=2200, height=1500)
+png("StateSpace1_15000_5000_final.png", width=2200, height=1500)
 par(mfrow=c(2,2),oma=c(5,5,5,5),mar=c(10, 10, 10, 10))
-parinfo <- data.frame("0-1" = numeric(5), "0-2" = numeric(5), "0-3" = numeric(5), "0-4" = numeric(5), row.names=c("mean of rmax", "mean of K", "mean of sigma2.obs", "mean of sigma2.proc", "MSS"))
+parinfo <- data.frame("0-1" = numeric(11), "0-2" = numeric(11), "0-3" = numeric(11), "0-4" = numeric(11), row.names=c("mean of rmax","mean of sd.rmax","mean of se.rmax","mean of K", "sd.K", "se.K", "mean of sigma2.obs", "mean of sigma2.proc", "mean of sd.N.est","mean of se.N.est","MSS"))
 macrounits <- levels(Popdata$macrounit)
-
+ylimmax <- c(3.5,3.5,3.5,6.5)
 for (i in 1:length(macrounits)){
   
   cond = which(Popdata$macrounit==macrounits[i]) 
@@ -62,7 +62,7 @@ for (i in 1:length(macrounits)){
   
   
   # Compile the model and run MCMC for burn-in phase:
-  model_fit <- jags.model(file = "model_ss.jags", data = model.data, inits = inits, n.chains = 1, n.adapt = 5000)
+  model_fit <- jags.model(file = "model_ss.jags", data = model.data, inits = inits, n.chains = 1, n.adapt = 15000)
   
   # Specify parameters whose posterior values are to be saved:
   parameters <- c("rmax","mean.rmax", "rd", "sigma2.obs", "sigma2.proc", "K", "N.est", "y")
@@ -95,12 +95,12 @@ for (i in 1:length(macrounits)){
   
   # Make a nice graph with data and model result:
   
-  plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], cex=0.5,  ylim= c(0, max(Popdata$MDperKMsqFall_mean[cond])), cex.axis=2.5, cex.main = 3, ylab = "", xlab = "", las = 1, col = "black", type = "p", main=macrounits[i])
+  plot(Popdata$MDperKMsqFall_mean[cond]~Popdata$year[cond], cex=0.5,  cex.axis=2.5, cex.main = 3, ylab = "", xlab = "", las = 1, col = "black", type = "p", main=macrounits[i], ylim=c(0,ylimmax[i]))
   polygon(x = c(Popdata$year[cond], rev(Popdata$year[cond])), y = c(N.est_quant[,5], rev(N.est_quant[,1])), col = "gray90", border = "gray90")
   
   lines (y_mean[,1]~Popdata$year[cond], col="black", lwd=1)
   lines (N.est_mean[,1]~Popdata$year[cond], col="red", lwd=2)
-  legend("topleft", legend = c("Observed", "Estimated", "95% Quantile Estimated"), lty = c(1, 1, 1), lwd = c(1,1,1), col = c("black", "red", "grey"), bty = "n", cex = 1)
+  #legend("topleft", legend = c("Observed", "Estimated", "95% Quantile Estimated"), lty = c(1, 1, 1), lwd = c(1,1,1), col = c("black", "red", "grey"), bty = "n", cex = 1)
   
   # display sd of estimate
   #polygon(x = c(Popdata$year[cond], rev(Popdata$year[cond])), y = c((N.est_mean[,1]+2*N.est_mean[,2]), rev(N.est_mean[,1]-2*N.est_mean[,2])), col = "gray90", border = "gray90")
@@ -117,8 +117,8 @@ for (i in 1:length(macrounits)){
   # lines (rd_mean_sd1~N.est_mean[,1], col="black", lty=2)
   # lines (rd_mean_sd2~N.est_mean[,1], col="black", lty=2)
   # lines (rd_calc~N.est_mean[,1], col="red")
-  parinfo[,i] <- c(mean(rmax_mean[,1]), K_mean[,1], sigmas_mean[,1],MSE)
-}
+  parinfo[,i] <- c(mean(rmax_mean[,1]), mean(rmax_mean[,2]),mean(rmax_mean[,4]),K_mean[,1],K_mean[,2],K_mean[,4],sigmas_mean[,1], mean(N.est_mean[,2]),mean(N.est_mean[,4]),MSE)
+  }
 mtext("Year", 1, 1, outer=TRUE, cex=3)
 mtext("Population Density", 2, 1, outer=TRUE, las=0, cex=3)
 mtext("StateSpace1", 3, 1, outer=TRUE, cex=3.5)       
