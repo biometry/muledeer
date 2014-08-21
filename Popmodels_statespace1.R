@@ -62,13 +62,13 @@ for (i in 1:length(macrounits)){
   
   
   # Compile the model and run MCMC for burn-in phase:
-  model_fit <- jags.model(file = "model_ss.jags", data = model.data, inits = inits, n.chains = 1, n.adapt = 15000)
+  model_fit <- jags.model(file = "model_ss.jags", data = model.data, inits = inits, n.chains = 3, n.adapt = 15000)
   
   # Specify parameters whose posterior values are to be saved:
   parameters <- c("rmax","mean.rmax", "rd", "sigma2.obs", "sigma2.proc", "K", "N.est", "y")
   
   # Continue running the MCMC to produce posterior distributions:
-  result_sss <- coda.samples(model = model_fit, variable.names = parameters, n.iter = 5000)
+  result_sss <- coda.samples(model = model_fit, variable.names = parameters, n.iter = 20000)
   
   # plot(result_sss) # Produces many plots: 25 for N.est, 24 for rmax, and one for mean.lambda, sigma2.proc and sigma2.obs, respectively
   # summary(result_sss)

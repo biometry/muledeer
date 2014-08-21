@@ -1,12 +1,18 @@
 ### GAMs applied on netto-reproduction-rate, including explanatory variables one by one
 
 library(mgcv)
+AllMeans <- read.csv("AllMeans.csv")
 
-sink("GAM_results_RepRate.txt", type=c("output","message"))
+#sink("GAM_results_RepRate.txt", type=c("output","message"))
 ###effect of population density (=Density-Dependence)
 gam_dens <- gam(RepRateFall_mean ~ s(MDperKMsqFall_mean, bs="cs") , data=AllMeans) 
 gam_dens <- gam(RepRateFall_mean ~ s(MDperKMsqFall_mean, by=macrounit, bs="cs") + macrounit, data=AllMeans) 
 
+# proving non-linear shape by glm-structure once linear one 2nd polynom
+glm_dens <- gam(RepRateFall_mean ~ MDperKMsqFall_mean, data=AllMeans)#R² 0.124 Dev.expl=12.8%,AIC:284.6896
+glm_dens_poly <- gam(RepRateFall_mean ~ MDperKMsqFall_mean + I(MDperKMsqFall_mean^2), data=AllMeans)#R² 0.201 Dev.expl=20.9%,AIC:268.161
+summary(glm_dens_poly)
+  
 gam_denspred <- data.frame(MDperKMsqFall_mean=AllMeans$MDperKMsqFall_mean, macrounit=AllMeans$macrounit)
 
 gam_denspred <- cbind(gam_denspred, predict(gam_dens, se.fit=T, newdata=data.frame("MDperKMsqFall_mean"=AllMeans$MDperKMsqFall_mean, "macrounit"=AllMeans$macrounit), type="response"))
@@ -139,8 +145,15 @@ acf(gam_woodyvegres, na.action = na.pass,main = "Auto-correlation plot for resid
 
 gam.check(gam_woodyveg)
 
+###Effect of Fawn:Female Ratio on each macrounit
 
 
+gam_ffratio <- gam(RepRateFall_mean ~ s(FawnFemaleRatio_mean, bs="cs"), data=AllMeans)
+gam_ffratio <- gam(RepRateFall_mean ~ s(MDperKMsqFall_mean, bs="cs") + s(FawnFemaleRatio_mean, by=macrounit, bs="cs") + macrounit, data=AllMeans)
+gam_ffratio <- gam(RepRateFall_mean ~ s(MDperKMsqFall_mean, by=macrounit, bs="cs") + s(FawnFemaleRatio_mean, bs="cs") + macrounit, data=AllMeans)
+
+summary(gam_ffratio)
+AIC(gam_ffratio)
 #Combined model
 gam_combine <- gam(RepRateFall_mean ~ s(MDperKMsqFall_mean, bs="cs") + s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean, bs="cs") + s(WellDen_mean, bs="cs") +  s(CoyoteDen_mean, bs="cs")+s(WoodyVeg_mean, bs="cs"), data=AllMeans)
 summary(gam_combine)

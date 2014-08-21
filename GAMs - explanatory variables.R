@@ -129,8 +129,6 @@ gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(WoodyVeg_mean, bs=
 gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(WoodyVeg_mean, by=macrounit, bs="cs") + macrounit, data=AllMeans)
 gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit, bs="cs") + s(WoodyVeg_mean, bs="cs") + macrounit, data=AllMeans)
 
-
-
 gam_woodyvegpred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit, WoodyVeg_meann=AllMeans$WoodyVeg_mean)
 gam_woodyvegpred <- cbind(gam_woodyvegpred, predict(gam_woodyveg, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit, "WoodyVeg_mean"=AllMeans$WoodyVeg_mean), type="response"))
 macrounitplots(glmobject = gam_woodyvegpred,xcol="year",title="gam_woodyveg fall - effect of Woody Vegetation",colour="red")
@@ -144,30 +142,23 @@ acf(gam_woodyvegres, na.action = na.pass,main = "Auto-correlation plot for resid
 
 gam.check(gam_woodyveg)
 
+###Effect of Fawn:Female Ratio
+gam_ffratio <- gam(MDperKMsqFall_mean ~ s(FawnFemaleRatio_mean, bs="cs"), data=AllMeans)
+gam_ffratio <- gam(MDperKMsqFall_mean ~ s(FawnFemaleRatio_mean, by=macrounit, bs="cs") + macrounit, data=AllMeans)
+
+gam_ffratio <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(FawnFemaleRatio_mean, bs="cs"), data=AllMeans)
+gam_ffratio <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(FawnFemaleRatio_mean, by=macrounit, bs="cs") + macrounit, data=AllMeans)
+gam_ffratio <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit, bs="cs") + s(FawnFemaleRatio_mean, bs="cs") + macrounit, data=AllMeans)
+
+summary(gam_ffratio)
+AIC(gam_ffratio)
+
+
+
+
 ##### All explanatory variables, Whole Area Means (equivalent to gam_all3)
 gam_combine <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(WellDen_mean, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
 gam_combine <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(WellDen_mean, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
-
-
-# without s(year) due to woodyveg correlation issues
-gam_combine <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(WellDen_mean, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
-# on each of the macrounits seperately
-macrounits <- levels(AllMeans$macrounit)
-parinfo <- data.frame("0-1" = numeric(6), "0-2" = numeric(6), "0-3" = numeric(6), "0-4" = numeric(6), row.names=c("p.AvrgWinterMinTemp", "p.HuntDen_All_mean_tminus1", "p.WellDen_mean","p.CoyoteDen_mean", "p.WoodyVeg_mean", "AIC"))
-for (i in 1:length(macrounits)){
-  cond = which(AllMeans$macrounit==macrounits[i])  
-  gam_combine <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(WellDen_mean, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans[cond,])
-  parinfo[,i] <- c((summary(gam_combine)$s.table[,"p-value"]),AIC(gam_combine))
-}
-parinfo
-
-
-
-
-#gam_combinepred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit, CoyoteDen_meann=AllMeans$CoyoteDen_mean)
-#gam_combinepred <- cbind(gam_combinepred, predict(gam_combine, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit, "CoyoteDen_mean"=AllMeans$CoyoteDen_mean), type="response"))
-#macrounitplots(glmobject = gam_combinepred,xcol="CoyoteDen_mean",title="gam_combine fall - effect of Coyote Density",colour="red")
-#macrounitplots(glmobject = gam_combinepred,title="gam_combine fall - effect of Coyote Density",colour="red")
 summary(gam_combine)
 AIC(gam_combine)
 
@@ -176,6 +167,55 @@ gam_combineres <- residuals(gam_combine, type = "deviance")
 acf(gam_combineres, na.action = na.pass,main = "Auto-correlation plot for residuals Coyote Density")
 
 gam.check(gam_combine)
+
+
+
+### without s(year), one of WoodyVeg,WellDen and FFratio at a time as these are collinear
+gam_combinewoody <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
+# on each of the macrounits seperately
+macrounits <- levels(AllMeans$macrounit)
+parinfo <- data.frame("0-1" = numeric(5), "0-2" = numeric(5), "0-3" = numeric(5), "0-4" = numeric(5), row.names=c("p.AvrgWinterMinTemp", "p.HuntDen_All_mean_tminus1", "p.CoyoteDen_mean", "p.WoodyVeg_mean", "AIC"))
+for (i in 1:length(macrounits)){
+  cond = which(AllMeans$macrounit==macrounits[i])  
+  gam_combinewoody <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans[cond,])
+  parinfo[,i] <- c((summary(gam_combinewoody)$s.table[,"p-value"]),AIC(gam_combinewoody))
+}
+which(parinfo < 0.001,arr.ind = TRUE)
+parinfo <- format(parinfo, scientific=FALSE)#after which beacuse otherwise which doesnt work anymore
+parinfo
+
+summary(gam_combinewoody)
+AIC(gam_combinewoody)
+
+gam_combinewell <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WellDen_mean, bs="cs"), data=AllMeans)
+# on each of the macrounits seperately
+macrounits <- levels(AllMeans$macrounit)
+parinfo <- data.frame("0-1" = numeric(5), "0-2" = numeric(5), "0-3" = numeric(5), "0-4" = numeric(5), row.names=c("p.AvrgWinterMinTemp", "p.HuntDen_All_mean_tminus1", "p.CoyoteDen_mean", "p.WellDen_mean", "AIC"))
+for (i in 1:length(macrounits)){
+  cond = which(AllMeans$macrounit==macrounits[i])  
+  gam_combinewell <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WellDen_mean, bs="cs"), data=AllMeans[cond,])
+  parinfo[,i] <- c((summary(gam_combinewell)$s.table[,"p-value"]),AIC(gam_combinewell))
+}
+which(parinfo < 0.001,arr.ind = TRUE)
+parinfo <- format(parinfo, scientific=FALSE)#after which beacuse otherwise which doesnt work anymore
+parinfo
+summary(gam_combinewell)
+AIC(gam_combinewell)
+
+gam_combineffratio <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(FawnFemaleRatio_mean, bs="cs"), data=AllMeans)
+# on each of the macrounits seperately
+macrounits <- levels(AllMeans$macrounit)
+parinfo <- data.frame("0-1" = numeric(5), "0-2" = numeric(5), "0-3" = numeric(5), "0-4" = numeric(5), row.names=c("p.AvrgWinterMinTemp", "p.HuntDen_All_mean_tminus1", "p.CoyoteDen_mean", "p.FawnFemaleRatio_mean", "AIC"))
+for (i in 1:length(macrounits)){
+  cond = which(AllMeans$macrounit==macrounits[i])  
+  gam_combineffratio <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(FawnFemaleRatio_mean, bs="cs"), data=AllMeans[cond,])
+  parinfo[,i] <- c((summary(gam_combineffratio)$s.table[,"p-value"]),AIC(gam_combineffratio))
+}
+which(parinfo < 0.001,arr.ind = TRUE)
+parinfo <- format(parinfo, scientific=FALSE)#after which beacuse otherwise which doesnt work anymore
+parinfo
+summary(gam_combineffratio)
+AIC(gam_combineffratio)
 
 
 #### combined gam based on Whole Area Means (equivalent go gam3)
