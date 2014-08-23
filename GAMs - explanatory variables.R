@@ -43,9 +43,8 @@ gam.check(gam_temp)
 # Check Residuals for temporal autocorrelation
 gam_tempres <- residuals(gam_temp, type = "deviance")
 plot(gam_tempres ~AllMeans$year[which(!is.na(AllMeans$MDperKMsqFall_mean))]) #
-acf(gam_tempres, na.action = na.pass,main = "Auto-correlation plot for residuals gam_temp fall")
+acf(gam_tempres, na.action = na.pass,main = "gam_temp: D ~ s(year) + s(AvrgWinMinTemp)")#including autocorrelation
 
-#including autocorrelation
 MD <- AllMeans$MDperKMsqFall_mean
 year <- time(AllMeans$year)
 temp <- AllMeans$AvrgWinterMinTemp
@@ -129,6 +128,7 @@ gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(WoodyVeg_mean, bs=
 gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(WoodyVeg_mean, by=macrounit, bs="cs") + macrounit, data=AllMeans)
 gam_woodyveg <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit, bs="cs") + s(WoodyVeg_mean, bs="cs") + macrounit, data=AllMeans)
 
+pred_single <- predict(gam_woodyveg, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit, "WoodyVeg_mean"=AllMeans$WoodyVeg_mean), type="response")
 gam_woodyvegpred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit, WoodyVeg_meann=AllMeans$WoodyVeg_mean)
 gam_woodyvegpred <- cbind(gam_woodyvegpred, predict(gam_woodyveg, se.fit=T, newdata=data.frame("year"=AllMeans$year, "macrounit"=AllMeans$macrounit, "WoodyVeg_mean"=AllMeans$WoodyVeg_mean), type="response"))
 macrounitplots(glmobject = gam_woodyvegpred,xcol="year",title="gam_woodyveg fall - effect of Woody Vegetation",colour="red")
@@ -138,7 +138,7 @@ AIC(gam_woodyveg)
 plot(gam_woodyveg)
 gam_woodyvegres <- residuals(gam_woodyveg, type = "deviance")
 plot(gam_woodyvegres ~AllMeans$year[which(!is.na(AllMeans$MDperKMsqFall_mean))]) #
-acf(gam_woodyvegres, na.action = na.pass,main = "Auto-correlation plot for residuals Woody Vegetation")
+acf(gam_woodyvegres, na.action = na.pass,main = "PopDen ~ s(year) + s(WoodyVeg)")
 
 gam.check(gam_woodyveg)
 
@@ -149,6 +149,8 @@ gam_ffratio <- gam(MDperKMsqFall_mean ~ s(FawnFemaleRatio_mean, by=macrounit, bs
 gam_ffratio <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(FawnFemaleRatio_mean, bs="cs"), data=AllMeans)
 gam_ffratio <- gam(MDperKMsqFall_mean ~ s(year, bs="cs") + s(FawnFemaleRatio_mean, by=macrounit, bs="cs") + macrounit, data=AllMeans)
 gam_ffratio <- gam(MDperKMsqFall_mean ~ s(year, by=macrounit, bs="cs") + s(FawnFemaleRatio_mean, bs="cs") + macrounit, data=AllMeans)
+
+gam_ffratiores <- residuals(gam_ffratio, type = "deviance")
 
 summary(gam_ffratio)
 AIC(gam_ffratio)
@@ -170,22 +172,34 @@ gam.check(gam_combine)
 
 
 
-### without s(year), one of WoodyVeg,WellDen and FFratio at a time as these are collinear
+### MULTIVARIATE MODELS without s(year), one of WoodyVeg,WellDen and FFratio at a time as these are collinear
+
 gam_combinewoody <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
 # on each of the macrounits seperately
+png("combinewoody_acf.png", width=2200, height=1500)
+par(mfrow=c(2,2),oma=c(10,10,10,10),mar=c(10, 10, 10, 10))
+gam_combinewoodypred <- data.frame(year=AllMeans$year, macrounit=AllMeans$macrounit, WoodyVeg_mean=AllMeans$WoodyVeg_mean, fit=numeric(204), se.fit=numeric(204))
 macrounits <- levels(AllMeans$macrounit)
 parinfo <- data.frame("0-1" = numeric(5), "0-2" = numeric(5), "0-3" = numeric(5), "0-4" = numeric(5), row.names=c("p.AvrgWinterMinTemp", "p.HuntDen_All_mean_tminus1", "p.CoyoteDen_mean", "p.WoodyVeg_mean", "AIC"))
 for (i in 1:length(macrounits)){
   cond = which(AllMeans$macrounit==macrounits[i])  
   gam_combinewoody <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans[cond,])
   parinfo[,i] <- c((summary(gam_combinewoody)$s.table[,"p-value"]),AIC(gam_combinewoody))
+  gam_combinewoodypred[cond,4:5] <- predict(gam_combinewoody, se.fit=T, newdata=data.frame("year"=AllMeans$year[cond], "macrounit"=AllMeans$macrounit[cond], "WoodyVeg_mean"=AllMeans$WoodyVeg_mean[cond],"AvrgWinterMinTemp"=AllMeans$AvrgWinterMinTemp[cond],"HuntDen_All_mean_tminus1"=AllMeans$HuntDen_All_mean_tminus1[cond], "CoyoteDen_mean"=AllMeans$CoyoteDen_mean[cond]), type="response")
+  gam_combinewoodyres <- residuals(gam_combinewoody, type = "deviance")
+  acf(gam_combinewoodyres, na.action = na.pass,main = macrounits[i])
 }
+title("Autocorrelation model 8:combinewoody", outer=TRUE, cex=3)
+dev.off()
+macrounitplots(glmobject = gam_combinewoodypred,xcol="year",title="Combine woodyveg fall",colour="red")
 which(parinfo < 0.001,arr.ind = TRUE)
 parinfo <- format(parinfo, scientific=FALSE)#after which beacuse otherwise which doesnt work anymore
 parinfo
-
+sum(as.numeric(parinfo[5,]))#sum of AIC: 253.1412
 summary(gam_combinewoody)
 AIC(gam_combinewoody)
+
+
 
 gam_combinewell <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WellDen_mean, bs="cs"), data=AllMeans)
 # on each of the macrounits seperately
@@ -199,6 +213,7 @@ for (i in 1:length(macrounits)){
 which(parinfo < 0.001,arr.ind = TRUE)
 parinfo <- format(parinfo, scientific=FALSE)#after which beacuse otherwise which doesnt work anymore
 parinfo
+sum(as.numeric(parinfo[5,])) #sum of AIC318.051
 summary(gam_combinewell)
 AIC(gam_combinewell)
 
@@ -214,6 +229,7 @@ for (i in 1:length(macrounits)){
 which(parinfo < 0.001,arr.ind = TRUE)
 parinfo <- format(parinfo, scientific=FALSE)#after which beacuse otherwise which doesnt work anymore
 parinfo
+sum(as.numeric(parinfo[5,])) #sum of AIC 360.9366
 summary(gam_combineffratio)
 AIC(gam_combineffratio)
 
