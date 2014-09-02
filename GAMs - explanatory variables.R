@@ -172,9 +172,12 @@ gam.check(gam_combine)
 
 
 
-### MULTIVARIATE MODELS without s(year), one of WoodyVeg,WellDen and FFratio at a time as these are collinear
+### MULTIVARIATE MODELS without s(year), one of WoodyVeg,WellDen and FFratio at a time as these are collinear----
 
 gam_combinewoody <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WoodyVeg_mean, bs="cs"), data=AllMeans)
+gam_combinewoodyres <- residuals(gam_combinewoody, type = "deviance")
+acf(gam_combinewoodyres, na.action = na.pass,main = "8: WoodyVeg",cex.label=3)
+
 # on each of the macrounits seperately
 png("combinewoody_acf.png", width=2200, height=1500)
 par(mfrow=c(2,2),oma=c(10,10,10,10),mar=c(10, 10, 10, 10))
@@ -202,14 +205,22 @@ AIC(gam_combinewoody)
 
 
 gam_combinewell <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WellDen_mean, bs="cs"), data=AllMeans)
+gam_combinewellres <- residuals(gam_combinewell, type = "deviance")
+acf(gam_combinewellres, na.action = na.pass,main = "8: WellDen")
 # on each of the macrounits seperately
+png("combinewell_acf.png", width=2200, height=1500)
+par(mfrow=c(2,2),oma=c(10,10,10,10),mar=c(10, 10, 10, 10))
 macrounits <- levels(AllMeans$macrounit)
 parinfo <- data.frame("0-1" = numeric(5), "0-2" = numeric(5), "0-3" = numeric(5), "0-4" = numeric(5), row.names=c("p.AvrgWinterMinTemp", "p.HuntDen_All_mean_tminus1", "p.CoyoteDen_mean", "p.WellDen_mean", "AIC"))
 for (i in 1:length(macrounits)){
   cond = which(AllMeans$macrounit==macrounits[i])  
   gam_combinewell <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(WellDen_mean, bs="cs"), data=AllMeans[cond,])
   parinfo[,i] <- c((summary(gam_combinewell)$s.table[,"p-value"]),AIC(gam_combinewell))
+  gam_combinewellres <- residuals(gam_combinewell, type = "deviance")
+  acf(gam_combinewellres, na.action = na.pass,main = macrounits[i],cex.main=4)
 }
+title("Autocorrelation model 8: WellDen", outer=TRUE, cex=5)
+dev.off()
 which(parinfo < 0.001,arr.ind = TRUE)
 parinfo <- format(parinfo, scientific=FALSE)#after which beacuse otherwise which doesnt work anymore
 parinfo
@@ -218,6 +229,8 @@ summary(gam_combinewell)
 AIC(gam_combinewell)
 
 gam_combineffratio <- gam(MDperKMsqFall_mean ~ s(AvrgWinterMinTemp, bs="cs") + s(HuntDen_All_mean_tminus1, bs="cs") + s(CoyoteDen_mean, bs="cs") + s(FawnFemaleRatio_mean, bs="cs"), data=AllMeans)
+gam_combineffratiores <- residuals(gam_combineffratio, type = "deviance")
+acf(gam_combineffratiores, na.action = na.pass,main = "8: FFRatio")
 # on each of the macrounits seperately
 macrounits <- levels(AllMeans$macrounit)
 parinfo <- data.frame("0-1" = numeric(5), "0-2" = numeric(5), "0-3" = numeric(5), "0-4" = numeric(5), row.names=c("p.AvrgWinterMinTemp", "p.HuntDen_All_mean_tminus1", "p.CoyoteDen_mean", "p.FawnFemaleRatio_mean", "AIC"))

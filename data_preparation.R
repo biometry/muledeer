@@ -62,10 +62,11 @@ AllMeans$WellDen_mean <- AllMeans$WellDen_mean / 10
 
 
 ###WHOLEAREAMEANS: Means for whole area
-WholeAreaMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall", "Average_of_Minimum_temperature_11_4", "d3", "d2","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage", "MaleFall", "FemaleFall", "FawnFall"), listvar=c("year"))
+WholeAreaMeans <- extract(data=mules1962, fun=mean, xvar=c("MDperKMsqSpring", "MDperKMsqFall", "Average_of_Minimum_temperature_11_4", "d3", "d2","fall_density_coyote_by_macrounit_100km2", "WT_DEER_springsurveysD", "OIL_GAS_insideD", "woody_coverage", "MaleFall", "FemaleFall", "FawnFall","Average_of_Minimum_temperature_11_4"), listvar=c("year"))
 WholeAreaMeans <- WholeAreaMeans[,-1]
-names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "MDperKMsqFall_mean",  "AvrgWinterMinTemp", "HuntDen_All_mean", "HuntDen_Aless_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean", "MaleFall_mean", "FemaleFall_mean", "FawnFall_mean")
-
+names(WholeAreaMeans) <- c("year","MDperKMsqSpring_mean", "MDperKMsqFall_mean",  "AvrgWinterMinTemp", "HuntDen_All_mean", "HuntDen_Aless_mean", "CoyoteDen_mean", "WTailDen_mean", "WellDen_mean", "WoodyVeg_mean", "MaleFall_mean", "FemaleFall_mean", "FawnFall_mean","Average_of_Minimum_temperature_11_4""AvrgMinWinterTemp")
+FawnFemaleRatio_mean = (WholeAreaMeans$FawnFall_mean/WholeAreaMeans$FemaleFall_mean)
+WholeAreaMeans <- cbind(WholeAreaMeans, FawnFemaleRatio_mean)
 
 # for Gita
 write.csv(AllMeans, "AllMeans.csv")

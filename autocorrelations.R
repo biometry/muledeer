@@ -1,9 +1,8 @@
 
-
 ### AUTOCORRELATION IN DATA ----
 par(mfrow=c(2,3))
 # AllMeans
-acf(AllMeans$MDperKMsqFall_mean, na.action = na.pass,main = "PopDen AllMeans")
+acf(AllMeans$MDperKMsqFall_mean, na.action = na.pass,main = "Data", ylab="", xlab="",cex.lab=4)
 
 # WholeAreaMeans
 acf(WholeAreaMeans$MDperKMsqFall_mean, na.action = na.pass,main = "PopDen WholeAreaMeans")
@@ -30,7 +29,7 @@ for (i in 1:length(macrounits)){
   acf(gam_all2res[cond], na.action = na.pass,main = c("AllMeans:PopDen ~ s(year, by=macrounit) , macrounit ",i))
 }
 
-#Univariate models
+#Univariate models ("see-Gam-explanatory.R")
 
 acf(gam_woodyvegres, na.action = na.pass,main = "PopDen ~ s(year) + s(WoodyVeg)")
 acf(gam_tempres, na.action = na.pass,main = "PopDen ~ s(AvrgWinMinTemp)")

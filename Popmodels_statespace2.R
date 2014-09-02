@@ -92,8 +92,8 @@ for (i in 1:length(macrounits)){
   sigmas_mean <- res_means[c(which(rownames(res_means) == "sigma2.obs"), which(rownames(res_means) == "sigma2.proc")),]
   pH_mean <-   res_means[which(rownames(res_means) == "pH"),]
 
-  
   N.est_quant <- res_quant[which(rownames(res_quant) == "N.est[1]"):(which(rownames(res_means) == "N.est[1]")+tsteps-1),]
+  pH_quant <- res_quant[which(rownames(res_quant) == "pH")]
   
   MSE <-   sum((abs(N.est_mean[,1]-Popdata$MDperKMsqFall_mean[cond]))^2, na.rm=TRUE)/length(Popdata$MDperKMsqFall_mean[cond])
   

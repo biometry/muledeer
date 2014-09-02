@@ -42,15 +42,15 @@ cat("
 sink()
 
 
-
-png("StateSpace2_45000_90000.png", width=2200, height=1500)
+dev.off()
+png("StateSpace2_30000_60000.png", width=2200, height=1500)
 par(mfrow=c(2,2),oma=c(5,5,5,5),mar=c(10, 10, 10, 10))
-parinfo <- data.frame("0-1" = numeric(19), "0-2" = numeric(19), "0-3" = numeric(19), "0-4" = numeric(19), row.names=c("mean of mean.rmax","sd. mean.rmax","se.mean.rmax", "mean of K", "sd.K", "se.K", "mean of sigma2.obs", "mean of sigma2.proc", "mean of sd.N.est","mean of se.N.est","mean of pH","sd.pH", "se.pH","2.5% quantile pH", "25% quantile pH","50% quantile pH","75% quantile pH","97.5% quantile pH","MSS"))
+parinfo <- data.frame("0-1" = numeric(21), "0-2" = numeric(21), "0-3" = numeric(21), "0-4" = numeric(21), row.names=c("mean of mean.rmax","sd. mean.rmax","se.mean.rmax", "median mean.rmax","mean of K", "sd.K", "se.K", "median.K","mean of sigma2.obs", "mean of sigma2.proc", "mean of sd.N.est","mean of se.N.est","mean of pH","sd.pH", "se.pH","2.5% quantile pH", "25% quantile pH","median pH","75% quantile pH","97.5% quantile pH","MSS"))
 macrounits <- levels(Popdata$macrounit)
 ylimmax <- c(3.5,3.5,3.5,6.5)
 result_final <- list()
 GelmanDiag <- list()
-
+N_list <- list()
 
 for (i in 1:length(macrounits)){
   
@@ -62,19 +62,19 @@ for (i in 1:length(macrounits)){
   # Initial values:
   # inits <- function(){list(sigma.proc = runif(1, 0, 10), mean.rmax = runif(1, 0.01, 10), K = runif(1, 0.1, 10), sigma.obs = runif(1, 0, 10), N.est = c(runif(1, 0.1, 10), rep(NA, (tsteps-1))))}
   
-  inits1 <- function(){list(sigma.proc = 1, mean.rmax = 0.3, K = 2, sigma.obs = 1, N.est = c(1, rep(NA, (tsteps-1))), pH=0.1);
-  list(sigma.proc = 1, mean.rmax = 5, K = 50, sigma.obs = 1, N.est = c(1, rep(NA, (tsteps-1))), pH=0.1)
-  list(sigma.proc = 1, mean.rmax = 3, K = 25, sigma.obs = 1, N.est = c(1, rep(NA, (tsteps-1))), pH=0.1)}
+  inits <- function(){list(sigma.proc = 1, mean.rmax = 0.1, K = 2, sigma.obs = 1, N.est = c(1, rep(NA, (tsteps-1))), pH=0.1);
+  list(sigma.proc = 1, mean.rmax = 0.5, K = 4, sigma.obs = 1, N.est = c(1, rep(NA, (tsteps-1))), pH=0.1)
+  list(sigma.proc = 1, mean.rmax = 1, K = 5, sigma.obs = 1, N.est = c(1, rep(NA, (tsteps-1))), pH=0.1)}
   
   
   # Compile the model and run MCMC for burn-in phase:
-  model_fit <- jags.model(file = "model_ss.jags", data = model.data, inits = inits, n.chains = 3, n.adapt = 45000)
+  model_fit <- jags.model(file = "model_ss.jags", data = model.data, inits = inits, n.chains = 3, n.adapt = 30000)
   
   # Specify parameters whose posterior values are to be saved:
   parameters <- c("mean.rmax", "sigma2.obs", "sigma2.proc", "K", "N.est","pH")
   
   # Continue running the MCMC to produce posterior distributions:
-  result_sss <- coda.samples(model = model_fit, variable.names = parameters, n.iter = 90000)
+  result_sss <- coda.samples(model = model_fit, variable.names = parameters, n.iter = 60000)
   
   # Extract relevant data for Convergence Diagnostics 
   b <- list(length(result_sss))
@@ -100,8 +100,9 @@ for (i in 1:length(macrounits)){
   pH_mean <-   res_means[which(rownames(res_means) == "pH"),]
   
   N.est_quant <- res_quant[which(rownames(res_quant) == "N.est[1]"):(which(rownames(res_means) == "N.est[1]")+tsteps-1),]
-  pH_quant <- res_quant[which(rownames(res_quant) == "pH"),]
-  
+  mean.rmax_quant <- res_quant[which(rownames(res_quant) == "mean.rmax"),]
+  K_quant <- res_quant[which(rownames(res_quant) == "K"),]
+  pH_quant <- res_quant[which(rownames(res_quant) == "pH"),] 
   MSE <-   sum((abs(N.est_mean[,1]-Popdata$MDperKMsqFall_mean[cond]))^2, na.rm=TRUE)/length(Popdata$MDperKMsqFall_mean[cond])
   
   # Make a nice graph with data and model result:
@@ -120,8 +121,16 @@ for (i in 1:length(macrounits)){
   #legend("topleft", legend = c("Observed", "Estimated", "sd Estimated", "95% CRI"), lty = c(1, 1, 2, 1), lwd = c(2, 2, 1, 2), col = c("black", "red", "red", "grey"), bty = "n", cex = 1)
   
   
-  
-  parinfo[,i] <- format(c(mean.rmax_mean[,1], mean.rmax_mean[,2],mean.rmax_mean[,4],K_mean[,1],K_mean[,2],K_mean[,4], sigmas_mean[,1], mean(N.est_mean[,2]),mean(N.est_mean[,4]),pH_mean[,1], pH_mean[,2],pH_mean[,4],pH_quant[1:5],MSE),scientific=FALSE)
+# save parameter estimates  
+  parinfo[,i] <- format(c(mean.rmax_mean[,1], mean.rmax_mean[,2],mean.rmax_mean[,4],mean.rmax_quant[,3],K_mean[,1],K_mean[,2],K_mean[,4],K_quant[,3], sigmas_mean[,1], mean(N.est_mean[,2]),mean(N.est_mean[,4]),pH_mean[,1], pH_mean[,2],pH_mean[,4],pH_quant[1:5],MSE),scientific=FALSE)
+  txtname <-   paste(c("StateSpace2_30000_60000_summary_results_sss_",i,".txt"),collapse="")
+  sink(txtname,type = c("output", "message"))
+  print(summary(result_sss))
+  sink()
+#save N means and median to list
+N_list <- append(N_list, list(N.est_mean[,1]))
+N_list <- append(N_list, list(N.est_quant[,3]))
+
 }
 mtext("Year", 1, 1, outer=TRUE, cex=3)
 mtext("Population Density", 2, 1, outer=TRUE, las=0, cex=3)
@@ -134,7 +143,7 @@ dev.off()
 m=0
 for (k in c(1,4,7,10)){
   m<- m+1
-  name <- paste(c("StateSpace2_45000_90000_Diag_",m,".png"),collapse="")
+  name <- paste(c("StateSpace2_30000_60000_Diag_",m,".png"),collapse="")
   png(name, width=2200, height=1500)
   par(mfrow=c(2,3),oma=c(5,5,5,5),mar=c(10, 10, 10, 10)) 
   gelman.plot(result_final[k:(k+2)], auto.layout=FALSE, cex.axis=2.5,cex.main=3,cex=5)
@@ -144,40 +153,67 @@ for (k in c(1,4,7,10)){
 
 #save histogramm of pH (always 1st chain)
 m=0
-png("StateSpace2_45000_90000_pH_histo.png", width=2200, height=1500)
+png("StateSpace2_30000_60000_pH_histo.png", width=2200, height=1500)
 par(mfrow=c(2,2),oma=c(5,5,5,5))
 for (k in c(1,4,7,10)){
   m<- m+1
-  xmin <- as.numeric(parinfo[14,m])-0.1
-  xmax <- as.numeric(parinfo[18,m])+0.1
-  hist(result_final[[k]][,"pH"],breaks=200, main=m,xlab="",cex.axis=2.5,cex.main=3,ylab="",xlim=c(xmin,xmax))
-  abline(v=as.numeric(parinfo[14,m]), col="red", lwd=3)
-  abline(v=as.numeric(parinfo[18,m]), col="red", lwd=3)
+  xmin <- as.numeric(parinfo[16,m])-0.1
+  xmax <- as.numeric(parinfo[20,m])+0.1
+  hist(result_final[[k:k+2]][,"pH"],breaks=200, main=m,xlab="",cex.axis=2.5,cex.main=3,ylab="",xlim=c(xmin,xmax))
+  abline(v=as.numeric(parinfo[16,m]), col="red", lwd=3)
+  abline(v=as.numeric(parinfo[20,m]), col="red", lwd=3)
 }
-mtext("pH in StateSpace2", 3, 1, outer=TRUE, cex=3) 
+mtext("pH", 3, 1, outer=TRUE, cex=3) 
 dev.off()
 
 
 
-#save density plot of pH (always 1st chain)
+#save density plot of pH 
 m=0
-png("StateSpace2_45000_90000_pH_1stchain.png", width=4000, height=4000)
+png("StateSpace2_30000_60000_pH_den_poly_2.png", width=4000, height=4000)
 par(mfrow=c(2,2),oma=c(10,10,10,10),mar=c(10,10,10,10))
 for (k in c(1,4,7,10)){
   m<- m+1
-  d <- density(result_final[[k]][,"pH"])
-  xmin <- as.numeric(parinfo[14,m])-0.1
-  xmax <- as.numeric(parinfo[18,m])+0.1
+  d <- density(result_final[[k:k+2]][,"pH"])
+  xmin <- as.numeric(parinfo[16,m])-0.1
+  xmax <- as.numeric(parinfo[20,m])+0.1
   plot(d, main=m,,cex.axis=6,cex.main=5,lwd=3,ylab="",xlab="",xlim=c(xmin,xmax))
-  abline(v=as.numeric(parinfo[14,m]), col="red", lwd=3)
-  abline(v=as.numeric(parinfo[18,m]), col="red", lwd=3)
+  polygon(x = c(as.numeric(parinfo[16,m]),as.numeric(parinfo[20,m]),as.numeric(parinfo[20,m]),as.numeric(parinfo[16,m])), y = c(min(d$y),min(d$y),max(d$y),max(d$y)), col = "gray90", border = "gray90")
+  lines(d, lwd=3)
+#   abline(v=as.numeric(parinfo[16,m]), col="red", lwd=3)
+#   abline(v=as.numeric(parinfo[20,m]), col="red", lwd=3)
+  
 }
-mtext("pH in StateSpace2", 3, 1, outer=TRUE, cex=6) 
+mtext("pH", 3, 1, outer=TRUE, cex=6) 
 mtext("Value", 1, 1, outer=TRUE, cex=6)
 mtext("Density", 2, 1, outer=TRUE, las=0, cex=6)
 dev.off()
 
+#save histogramm of K
+m=0
+png("StateSpace1_30000_60000_K_histo.png", width=2200, height=1500)
+par(mfrow=c(2,2),oma=c(5,5,5,5))
+for (k in c(1,4,7,10)){
+  m<- m+1
+  hist(result_final[[k:k+2]][,"K"],breaks=300, main=m,xlab="",cex.axis=2.5,cex.main=3,ylab="")
+  abline(v=as.numeric(parinfo[5,m]), col="red", lwd=3)#mean
+  abline(v=as.numeric(parinfo[8,m]), col="blue", lwd=3)#median
+}
+mtext("K in StateSpace2", 3, 1, outer=TRUE, cex=3) 
+dev.off()
 
+#save histogramm of rmax
+m=0
+png("StateSpace1_30000_60000_rmax_histo_all 3chains.png", width=2200, height=1500)
+par(mfrow=c(2,2),oma=c(5,5,5,5))
+for (k in c(1,4,7,10)){
+  m<- m+1
+  hist(result_final[[k:k+2]][,"mean.rmax"],breaks=200, main=m,xlab="",cex.axis=2.5,cex.main=3,ylab="")
+  abline(v=as.numeric(parinfo[1,m]), col="red", lwd=3)#mean
+  abline(v=as.numeric(parinfo[4,m]), col="blue", lwd=3)#median
+}
+mtext("mean.rmax in StateSpace2", 3, 1, outer=TRUE, cex=3) 
+dev.off()
 
 #save Gelman Diagnostics + parameter values
 name2 <-paste(c("StateSpace2_30000_60000_GelmanDiag",".txt"),collapse="")
@@ -186,13 +222,28 @@ print(parinfo)
 print(GelmanDiag)
 sink()
 
+#save traceplots
+
+m=0
+for (k in c(1,4,7,10)){
+  m<- m+1
+  name5 <- paste(c("StateSpace2_30000_60000_traceplots_margden_",m,".png"),collapse="")
+  png(name5, width=4000, height=5000)
+  par(mfrow=c(5,2),oma=c(5,5,5,5))
+  plot(result_final[[k:k+2]])
+  mtext(paste(c("Traceplots_MU ",m),""), 3, 1, outer=TRUE, cex=3)
+  dev.off()
+}
+
+
+
 
 print("DO YOU WANT MCMCPLOT HTML-FILES?")
 print("DO YOU?")
 print("DO YOU?")
 print("DO YOU?")
-save posterior distr+traces in HTML (messy with all 4 MUs, keps overwriting files)
-library(mcmcplots)
+# save posterior distr+traces in HTML (messy with all 4 MUs, keps overwriting files)
+# library(mcmcplots)
 # m=0
 # for (k in c(1,4,7,10)){
 #   m<- m+1
